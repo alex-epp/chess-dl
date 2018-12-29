@@ -14,6 +14,7 @@ class SDLBoardRenderer(BoardRenderer):
         self._sprite_pack.load()
         self._board = self._create_board_surface()
         self._pieces = self._create_pieces_surface()
+        self._menu = self._create_menu_surface()
         self._screen = pygame.Surface(self._board.get_size())
         self._window.backbuffer_size = self._board.get_size()
 
@@ -33,6 +34,10 @@ class SDLBoardRenderer(BoardRenderer):
     def _create_pieces_surface(self) -> pygame.Surface:
         pieces = pygame.Surface(self._board.get_size(), pygame.SRCALPHA)
         return pieces.convert_alpha()
+
+    def _create_menu_surface(self) -> pygame.Surface:
+        menu = pygame.Surface(self._board.get_size(), pygame.SRCALPHA)
+        return menu.convert_alpha()
 
     def _extract_piece_map(self, fen):
         piece_map = {}
@@ -59,28 +64,50 @@ class SDLBoardRenderer(BoardRenderer):
         for coord, tile in piece_map.items():
             self._sprite_pack.blit(tile, self._pieces, coord.screen)
 
+        if 'menu' in overlay:
+            return
+
         # Render highlights
         if 'highlight' in overlay:
             for coord in overlay['highlight']:
-                self._sprite_pack.blit('highlight', self._pieces, coord.screen)
+                self._sprite_pack.blit('move_potential', self._pieces, coord.screen)
+
+        # Render last move
+        if 'last_move' in overlay:
+            move_from, move_to = overlay['last_move']
+            self._sprite_pack.blit('move_from', self._pieces, move_from.screen)
+            self._sprite_pack.blit('move_to', self._pieces, move_to.screen)
+
+        # Render hovering
+        if 'hover' in overlay:
+            pos = self.Coord(rank_file=overlay['hover'].rank_file)
+            self._sprite_pack.blit('hover', self._pieces, pos.screen)
 
         # Render dragging
         if 'drag_start' in overlay:
             drag_start = overlay['drag_start']
             drag_coord = overlay['drag']
-
             try:
                 tile = next(tile for coord, tile in piece_map.items() if (coord.rank_file == drag_start.rank_file).all())
                 self._sprite_pack.blit(tile, self._pieces, drag_coord.screen - drag_start.screen + self.Coord(rank_file=drag_start.rank_file).screen)
             except StopIteration:
                 pass
 
+    def _blit_menu(self, overlay):
+        if 'menu' not in overlay:
+            self._menu.fill((0, 0, 0, 0))
+            return
+
+        self._menu.fill((0, 0, 0, 100))
+
     def draw(self, fen: str, overlay):
         self._blit_pieces(self._extract_piece_map(fen), overlay)
+        self._blit_menu(overlay)
 
         self._window.clear()
         self._window.draw(self._board, (0, 0))
         self._window.draw(self._pieces, (0, 0))
+        self._window.draw(self._menu, (0, 0))
         self._window.flip()
 
     def _screen_pos_to_tile_pos(self, pos):

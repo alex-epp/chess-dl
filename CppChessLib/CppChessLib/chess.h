@@ -141,10 +141,10 @@ namespace chess {
 		static const unsigned int B_PROMOTION = 0b1001;
 		static const unsigned int R_PROMOTION = 0b1010;
 		static const unsigned int Q_PROMOTION = 0b1011;
-		static const unsigned int N_PROMO_CAPTURE = 0b1100;
-		static const unsigned int B_PROMO_CAPTURE = 0b1101;
-		static const unsigned int R_PROMO_CAPTURE = 0b1110;
-		static const unsigned int Q_PROMO_CAPTURE = 0b1111;
+		static const unsigned int N_PROMO_CAPTURE = CAPTURE | N_PROMOTION;
+		static const unsigned int B_PROMO_CAPTURE = CAPTURE | B_PROMOTION;
+		static const unsigned int R_PROMO_CAPTURE = CAPTURE | R_PROMOTION;
+		static const unsigned int Q_PROMO_CAPTURE = CAPTURE | Q_PROMOTION;
 
 		Move(unsigned int f, unsigned int t, unsigned int flags = QUIET, Piece::Type p = Piece::NONE) {
 			switch (p) {
