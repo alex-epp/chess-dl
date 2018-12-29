@@ -137,30 +137,41 @@ class SDLDragger:
 
     def __init__(self, renderer):
         self._renderer = renderer
-        self.drag_point = None
-        self.dragging = False
-        self.drag_start = None
+        self._drag_point = None
+        self._dragging = False
+        self._drag_start = None
 
+        self._enabled = True
         self._event_listeners = set()
+
+    def enable(self):
+        self._enabled = True
+
+    def disable(self):
+        if self._dragging:
+            self._dragging = False
+            self._event(self.Event(self.Event.END, self._drag_start, self._drag_start))
+        self._enabled = False
 
     def register_event_listener(self, listener):
         self._event_listeners.add(listener)
 
     def process_event(self, event: pygame.event.Event):
         if event.type == pygame.MOUSEMOTION:
-            if self.dragging:
-                self.drag_point = self._renderer.Coord(screen=event.pos)
-                self._event(self.Event(self.Event.DRAG, self.drag_start, self.drag_point))
+            if self._dragging:
+                self._drag_point = self._renderer.Coord(screen=event.pos)
+                self._event(self.Event(self.Event.DRAG, self._drag_start, self._drag_point))
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            self.dragging = True
-            self.drag_start = self._renderer.Coord(screen=event.pos)
-            self.drag_point = self.drag_start
-            self._event(self.Event(self.Event.START, self.drag_start, self.drag_point))
+            self._dragging = True
+            self._drag_start = self._renderer.Coord(screen=event.pos)
+            self._drag_point = self._drag_start
+            self._event(self.Event(self.Event.START, self._drag_start, self._drag_point))
         elif event.type == pygame.MOUSEBUTTONUP:
-            self.dragging = False
+            self._dragging = False
             drag_end = self._renderer.Coord(screen=event.pos)
-            self._event(self.Event(self.Event.END, self.drag_start, self.drag_point, drag_end))
+            self._event(self.Event(self.Event.END, self._drag_start, self._drag_point, drag_end))
 
     def _event(self, event):
-        for l in self._event_listeners:
-            l(event)
+        if self._enabled:
+            for l in self._event_listeners:
+                l(event)

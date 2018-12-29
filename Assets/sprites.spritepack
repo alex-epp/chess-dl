@@ -6,7 +6,10 @@ texture_file = sprites.png
 black = [0, 400]
 white = [200, 400]
 
-highlight = [400, 400]
+move_potential = [400, 400]
+move_from = [600, 400]
+move_to = [600, 400]
+hover = [800, 400]
 
 p = [0, 0]
 n = [200, 0]
