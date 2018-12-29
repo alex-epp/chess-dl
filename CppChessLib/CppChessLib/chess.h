@@ -1,9 +1,12 @@
 #ifndef CHESS_H
 #define CHESS_H
 
+#include "bitscan.h"
+
 #include <cstdint>
 #include <string>
 #include <iostream>
+#include <vector>
 
 namespace chess {
 
@@ -172,10 +175,9 @@ namespace chess {
 		static const Piece::Type PROMOTION_TYPES[4];
 	};
 
-
-	class Board {
+	class BaseBoard {
 	public:
-		Board(std::string fen = STARTING_FEN) {
+		BaseBoard(std::string fen = STARTING_FEN) {
 			this->load_FEN(fen);
 		}
 
@@ -275,6 +277,63 @@ namespace chess {
 				this->piece_BB[i] &= ~PosIndex::to_BB_mask(position);
 			this->piece_mailbox[position].clear();
 		}
+
+		template <typename T>
+		T& print(T& stream) const {
+			for (int r = 7; r >= 0; --r) {
+				for (int f = 0; f < 8; ++f) {
+					if (this->pawns(Piece::WHITE) & BB::from_file_rank(f, r))
+						stream << L"\u2659";
+					else if (this->knights(Piece::WHITE) & BB::from_file_rank(f, r))
+						stream << L"\u2658";
+					else if (this->bishops(Piece::WHITE) & BB::from_file_rank(f, r))
+						stream << L"\u2657";
+					else if (this->rooks(Piece::WHITE) & BB::from_file_rank(f, r))
+						stream << L"\u2656";
+					else if (this->queens(Piece::WHITE) & BB::from_file_rank(f, r))
+						stream << L"\u2655";
+					else if (this->kings(Piece::WHITE) & BB::from_file_rank(f, r))
+						stream << L"\u2654";
+
+					else if (this->pawns(Piece::BLACK) & BB::from_file_rank(f, r))
+						stream << L"\u265F";
+					else if (this->knights(Piece::BLACK) & BB::from_file_rank(f, r))
+						stream << L"\u265E";
+					else if (this->bishops(Piece::BLACK) & BB::from_file_rank(f, r))
+						stream << L"\u265D";
+					else if (this->rooks(Piece::BLACK) & BB::from_file_rank(f, r))
+						stream << L"\u265C";
+					else if (this->queens(Piece::BLACK) & BB::from_file_rank(f, r))
+						stream << L"\u265B";
+					else if (this->kings(Piece::BLACK) & BB::from_file_rank(f, r))
+						stream << L"\u265A";
+
+					else
+						stream << L"\u2610";
+				}
+				stream << std::endl;
+			}
+			return stream;
+		}
+
+		static const std::string STARTING_FEN;
+	protected:
+		// Bitboards stored with little-endian-rank-file-mapping
+		std::uint64_t piece_BB[8];
+
+		// Mailbox stored with least-significant-file-mapping
+		Piece piece_mailbox[64];
+	};
+	inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
+		return board.print(stream);
+	}
+
+	/*
+	 * BoardBoard with move generation added. Uses mirroring so that internally it always moves as if it's white.
+	 */
+	class Board : public BaseBoard {
+	public:
+		Board(std::string fen = STARTING_FEN) : BaseBoard(fen) {}
 
 		void push_move(std::string uci) {
 			auto from = PosIndex::from_uci(uci.substr(0, 2));
@@ -385,55 +444,48 @@ namespace chess {
 			}*/
 		}
 
-		template <typename T>
-		T& print(T& stream) const {
-			for (int r = 7; r >= 0; --r) {
-				for (int f = 0; f < 8; ++f) {
-					if (this->pawns(Piece::WHITE) & BB::from_file_rank(f, r))
-						stream << L"\u2659";
-					else if (this->knights(Piece::WHITE) & BB::from_file_rank(f, r))
-						stream << L"\u2658";
-					else if (this->bishops(Piece::WHITE) & BB::from_file_rank(f, r))
-						stream << L"\u2657";
-					else if (this->rooks(Piece::WHITE) & BB::from_file_rank(f, r))
-						stream << L"\u2656";
-					else if (this->queens(Piece::WHITE) & BB::from_file_rank(f, r))
-						stream << L"\u2655";
-					else if (this->kings(Piece::WHITE) & BB::from_file_rank(f, r))
-						stream << L"\u2654";
+	private:
+		void get_pawn_moves(std::vector<Move>& moves) {
+			auto left_capture_BB = this->pawns(Piece::WHITE) & BB::shift_right_back(this->pieces(Piece::BLACK));
+			auto right_capture_BB = this->pawns(Piece::WHITE) & BB::shift_left_back(this->pieces(Piece::BLACK));
+			auto push_BB = this->pawns(Piece::WHITE) & ~BB::shift_back(this->pieces());
+			auto double_push_BB = push_BB & BB::R2 && ~BB::shift_back(this->pieces(), 2);
 
-					else if (this->pawns(Piece::BLACK) & BB::from_file_rank(f, r))
-						stream << L"\u265F";
-					else if (this->knights(Piece::BLACK) & BB::from_file_rank(f, r))
-						stream << L"\u265E";
-					else if (this->bishops(Piece::BLACK) & BB::from_file_rank(f, r))
-						stream << L"\u265D";
-					else if (this->rooks(Piece::BLACK) & BB::from_file_rank(f, r))
-						stream << L"\u265C";
-					else if (this->queens(Piece::BLACK) & BB::from_file_rank(f, r))
-						stream << L"\u265B";
-					else if (this->kings(Piece::BLACK) & BB::from_file_rank(f, r))
-						stream << L"\u265A";
-
-					else
-						stream << L"\u2610";
-				}
-				stream << std::endl;
+			BITSCAN_FOREACH(left_capture_BB, from_position) {
+				auto to_position = from_position + PosIndex::COMPASS_ROSE[PosIndex::Direction::NORTHWEST];
+				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::CAPTURE);
 			}
-			return stream;
+
+			BITSCAN_FOREACH(right_capture_BB, from_position) {
+				auto to_position = from_position + PosIndex::COMPASS_ROSE[PosIndex::Direction::NORTHEAST];
+				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::CAPTURE);
+			}
+
+			BITSCAN_FOREACH(push_BB, from_position) {
+				auto to_position = from_position + PosIndex::COMPASS_ROSE[PosIndex::Direction::NORTH];
+				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::QUIET);
+			}
+
+			BITSCAN_FOREACH(push_BB, from_position) {
+				auto to_position = from_position + PosIndex::COMPASS_ROSE[PosIndex::Direction::NORTH] * 2;
+				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::D_P_PUSH);
+			}
 		}
 
-		static const std::string STARTING_FEN;
-	protected:
-		// Bitboards stored with little-endian-rank-file-mapping
-		std::uint64_t piece_BB[8];
-
-		// Mailbox stored with least-significant-file-mapping
-		Piece piece_mailbox[64];
+		void add_pseudo_legal_pawn_move(std::vector<Move>& moves, unsigned int from, unsigned int to, unsigned int flags) {
+			if (!this->is_move_pinned(from, to)) {
+				if (PosIndex::rank(to) == 8) {
+					moves.emplace_back(from, to, flags | Move::N_PROMOTION);
+					moves.emplace_back(from, to, flags | Move::B_PROMOTION);
+					moves.emplace_back(from, to, flags | Move::R_PROMOTION);
+					moves.emplace_back(from, to, flags | Move::Q_PROMOTION);
+				}
+				else {
+					moves.emplace_back(from, to, flags);
+				}
+			}
+		}
 	};
-	inline std::wostream& operator << (std::wostream& stream, const Board& board) {
-		return board.print(stream);
-	}
 }
 
 #endif
