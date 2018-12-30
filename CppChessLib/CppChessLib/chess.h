@@ -11,14 +11,29 @@
 namespace chess {
 
 	namespace BB {
-		std::uint64_t constexpr rank(const int r) {
+		using BitBoard = std::uint64_t;
+
+		BitBoard constexpr rank(const int r) {
 			return UINT64_C(0xFF) << 8 * r;
 		}
-		std::uint64_t constexpr file(const int f) {
+		BitBoard constexpr file(const int f) {
 			return (UINT64_C(0x0101010101010101) << f);
 		}
-		std::uint64_t constexpr from_file_rank(const int f, const int r) {
+		BitBoard constexpr from_file_rank(const int f, const int r) {
 			return UINT64_C(0x01) << (f + (r << 3));
+		}
+
+		BitBoard constexpr west_files(int num_files) {
+			BitBoard files = 0;
+			for (auto f = 7; num_files > 0; --f, --num_files)
+				files |= file(f);
+			return files;
+		}
+		BitBoard constexpr east_files(int num_files) {
+			BitBoard files = 0;
+			for (auto f = 0; num_files > 0; ++f, --num_files)
+				files |= file(f);
+			return files;
 		}
 
 		template <typename T>
@@ -43,6 +58,43 @@ namespace chess {
 		constexpr std::uint64_t F1 = from_file_rank(5, 0), F2 = from_file_rank(5, 1), F3 = from_file_rank(5, 2), F4 = from_file_rank(5, 3), F5 = from_file_rank(5, 4), F6 = from_file_rank(5, 5), F7 = from_file_rank(5, 6), F8 = from_file_rank(5, 7);
 		constexpr std::uint64_t G1 = from_file_rank(6, 0), G2 = from_file_rank(6, 1), G3 = from_file_rank(6, 2), G4 = from_file_rank(6, 3), G5 = from_file_rank(6, 4), G6 = from_file_rank(6, 5), G7 = from_file_rank(6, 6), G8 = from_file_rank(6, 7);
 		constexpr std::uint64_t H1 = from_file_rank(7, 0), H2 = from_file_rank(7, 1), H3 = from_file_rank(7, 2), H4 = from_file_rank(7, 3), H5 = from_file_rank(7, 4), H6 = from_file_rank(7, 5), H7 = from_file_rank(7, 6), H8 = from_file_rank(7, 7);
+
+		constexpr BitBoard shift_N(BitBoard bb) {
+			return bb << 8;
+		}
+		constexpr BitBoard shift_N(BitBoard bb, int amount) {
+			return bb << (8 * amount);
+		}
+		constexpr BitBoard shift_S(BitBoard bb) {
+			return bb >> 8;
+		}
+		constexpr BitBoard shift_S(BitBoard bb, int amount) {
+			return bb >> (8 * amount);
+		}
+		constexpr BitBoard shift_E(BitBoard bb) {
+			return (bb >> 1) & ~H;
+		}
+		constexpr BitBoard shift_E(BitBoard bb, int amount) {
+			return (bb >> amount) & ~west_files(amount);
+		}
+		constexpr BitBoard shift_W(BitBoard bb) {
+			return (bb << 1) & ~A;
+		}
+		constexpr BitBoard shift_W(BitBoard bb, int amount) {
+			return (bb << amount) & ~east_files(amount);
+		}
+		constexpr BitBoard shift_NE(BitBoard bb) {
+			return (bb << 7) & ~H;
+		}
+		constexpr BitBoard shift_NW(BitBoard bb) {
+			return (bb << 9) & ~A;
+		}
+		constexpr BitBoard shift_SE(BitBoard bb) {
+			return (bb >> 9) & ~H;
+		}
+		constexpr BitBoard shift_SW(BitBoard bb) {
+			return (bb >> 7) & ~A;
+		}
 	}
 
 	class Piece {
@@ -91,7 +143,7 @@ namespace chess {
 	};
 
 	namespace PosIndex {
-		constexpr std::uint64_t to_BB_mask(unsigned int position) {
+		constexpr BB::BitBoard to_BB_mask(unsigned int position) {
 			return UINT64_C(1) << position;
 		}
 		constexpr unsigned int from_file_rank(const int file, const int rank) {
@@ -99,6 +151,10 @@ namespace chess {
 		}
 		inline unsigned int from_uci(std::string uci) {
 			return from_file_rank(::tolower(uci[0]) - 'a', uci[1] - '1');
+		}
+
+		constexpr unsigned int rank(unsigned int position) {
+			return position / 8;
 		}
 
 		enum Direction {
@@ -446,10 +502,10 @@ namespace chess {
 
 	private:
 		void get_pawn_moves(std::vector<Move>& moves) {
-			auto left_capture_BB = this->pawns(Piece::WHITE) & BB::shift_right_back(this->pieces(Piece::BLACK));
-			auto right_capture_BB = this->pawns(Piece::WHITE) & BB::shift_left_back(this->pieces(Piece::BLACK));
-			auto push_BB = this->pawns(Piece::WHITE) & ~BB::shift_back(this->pieces());
-			auto double_push_BB = push_BB & BB::R2 && ~BB::shift_back(this->pieces(), 2);
+			auto left_capture_BB = this->pawns(Piece::WHITE) & BB::shift_SW(this->pieces(Piece::BLACK));
+			auto right_capture_BB = this->pawns(Piece::WHITE) & BB::shift_SE(this->pieces(Piece::BLACK));
+			auto push_BB = this->pawns(Piece::WHITE) & ~BB::shift_S(this->pieces());
+			auto double_push_BB = push_BB & BB::R2 && ~BB::shift_S(this->pieces(), 2);
 
 			BITSCAN_FOREACH(left_capture_BB, from_position) {
 				auto to_position = from_position + PosIndex::COMPASS_ROSE[PosIndex::Direction::NORTHWEST];

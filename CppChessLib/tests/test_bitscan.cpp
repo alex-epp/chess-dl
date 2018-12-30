@@ -10,7 +10,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace tests
 {
-	TEST_CLASS(TestBitMask)
+	TEST_CLASS(TestBitScan)
 	{
 	public:
 
