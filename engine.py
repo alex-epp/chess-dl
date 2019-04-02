@@ -1,42 +1,53 @@
 import chess
 import chess.polyglot
 import random
+import math
 import multiprocessing
 import numba
 
+from tqdm import tqdm
+
 
 class Engine:
+    STARTING_DEPTH = 2
+
     def __init__(self):
         self._eval_cache = {}
 
     def get_move(self, board):
-        _, move = self._negamax(board, 1, 4, 1 if board.turn == chess.WHITE else -1, {})
+        _, move = self._negamax(board, self.STARTING_DEPTH, False, -math.inf, math.inf, 1 if board.turn == chess.WHITE else -1, {})
         return move
 
-    def _negamax(self, node: chess.Board, depth, qdepth, color, cache):
-        if qdepth == 0 or node.is_game_over(claim_draw=True):
+    def _negamax(self, node: chess.Board, depth, quiet, alpha, beta, color, cache):
+        if (depth == 0 and quiet) or node.is_game_over(claim_draw=True) or depth == -3:
             return color * self._evaluate(node), None
 
-        node_hash = self._hash_board(node), depth
+        node_hash = self._hash_board(node), depth, color
 
         if node_hash in cache:
             return cache[node_hash]
 
-        # moves = list(node.legal_moves)
-        # values = [color * self._evaluate(node, m) for m in moves]
-        # moves = zip(*sorted(zip(values, moves), reverse=True))[0]
         moves = list(node.legal_moves)
-        if depth <= 0:
-            moves = sorted(random.sample(moves, k=len(moves)), key=lambda m: color*self._evaluate(node, m), reverse=True)[:2]
+        random.shuffle(moves)
+        moves.sort(key=lambda m: color * self._evaluate(node, m), reverse=True)
+
+        if depth == self.STARTING_DEPTH:
+            moves = tqdm(moves)
 
         best_score = None
         best_move = None
         for move in moves:
+            quiet = not node.is_capture(move)
             node.push(move)
-            score = -self._negamax(node, depth-1, qdepth-1, -color, cache)[0]
+            quiet = quiet and not node.is_check()
+            score = -self._negamax(node, depth-1, quiet, -beta, -alpha, -color, cache)[0]
+
             if best_score is None or score >= best_score:
                 best_score, best_move = score, move
             node.pop()
+            alpha = max(alpha, best_score)
+            if alpha >= beta:
+                break
 
         cache[node_hash] = best_score, best_move
         return best_score, best_move
@@ -50,9 +61,9 @@ class Engine:
 
         if board_hash not in self._eval_cache:
             if board.result(claim_draw=True) == '1-0':
-                value = 1
+                value = math.inf
             elif board.result(claim_draw=True) == '0-1':
-                value = -1
+                value = -math.inf
             elif board.result(claim_draw=True) == '1/2-1/2':
                 value = 0
             else:
@@ -65,7 +76,7 @@ class Engine:
                     5 * chess.popcount(board.rooks & board.occupied_co[chess.BLACK]) +
                     9 * chess.popcount(board.queens & board.occupied_co[chess.WHITE]) -
                     9 * chess.popcount(board.queens & board.occupied_co[chess.BLACK])
-                ) / 160
+                )
 
             self._eval_cache[board_hash] = value
 
@@ -76,7 +87,7 @@ class Engine:
 
     @numba.jit
     def _hash_board(self, board: chess.Board):
-        return board.pawns, board.bishops, board.knights, board.rooks, board.queens, board.knights, board.occupied_co[chess.WHITE]
+        return board.pawns, board.bishops, board.knights, board.rooks, board.queens, board.knights, board.occupied_co[chess.WHITE], board.turn
 
 
 def engine_process(conn):

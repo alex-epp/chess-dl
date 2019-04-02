@@ -5,15 +5,16 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-#include "../CppChessLib/chess.h"
+#include "../CppChessLib/bitboard.h"
 
+using namespace chess;
 
 namespace tests
 {
 	TEST_CLASS(TestBB)
 	{
 	public:
-		const chess::BB::BitBoard bb =
+		const BB::BitBoard bb =
 			(UINT64_C(0b00011000) << (8 * 7)) +
 			(UINT64_C(0b00011000) << (8 * 6)) +
 			(UINT64_C(0b00100100) << (8 * 5)) +
@@ -34,14 +35,13 @@ namespace tests
 				(UINT64_C(0b00011000) << (8 * 2)) +
 				(UINT64_C(0b00011000) << (8 * 1)) +
 				(UINT64_C(0b00000000) << (8 * 0)),
-				chess::BB::shift_N(bb)
+				BB::shift_N(bb)
 			);
 			auto shifted_bb = bb;
-			for (int i = 0; i < 8; ++i, shifted_bb = chess::BB::shift_N(shifted_bb)) {
-				Assert::AreEqual(shifted_bb, chess::BB::shift_N(bb, i));
+			for (int i = 0; i < 8; ++i, shifted_bb = BB::shift_N(shifted_bb)) {
+				Assert::AreEqual(shifted_bb, BB::shift_N(bb, i));
 			}
 		}
-
 		TEST_METHOD(TestShiftSouth)
 		{
 			Assert::AreEqual(
@@ -53,15 +53,14 @@ namespace tests
 				(UINT64_C(0b01000011) << (8 * 2)) +
 				(UINT64_C(0b00100100) << (8 * 1)) +
 				(UINT64_C(0b00011000) << (8 * 0)),
-				chess::BB::shift_S(bb)
+				BB::shift_S(bb)
 			);
 			auto shifted_bb = bb;
-			for (int i = 0; i < 8; ++i, shifted_bb = chess::BB::shift_S(shifted_bb)) {
-				Assert::AreEqual(shifted_bb, chess::BB::shift_S(bb, i));
+			for (int i = 0; i < 8; ++i, shifted_bb = BB::shift_S(shifted_bb)) {
+				Assert::AreEqual(shifted_bb, BB::shift_S(bb, i));
 			}
 		}
-
-		TEST_METHOD(TestShiftWest)
+		TEST_METHOD(TestShiftEast)
 		{
 			Assert::AreEqual(
 				(UINT64_C(0b00110000) << (8 * 7)) +
@@ -72,15 +71,14 @@ namespace tests
 				(UINT64_C(0b01001000) << (8 * 2)) +
 				(UINT64_C(0b00110000) << (8 * 1)) +
 				(UINT64_C(0b00110000) << (8 * 0)),
-				chess::BB::shift_W(bb)
+				BB::shift_E(bb)
 			);
 			auto shifted_bb = bb;
-			for (int i = 0; i < 8; ++i, shifted_bb = chess::BB::shift_W(shifted_bb)) {
-				Assert::AreEqual(shifted_bb, chess::BB::shift_W(bb, i));
+			for (int i = 0; i < 8; ++i, shifted_bb = BB::shift_E(shifted_bb)) {
+				Assert::AreEqual(shifted_bb, BB::shift_E(bb, i));
 			}
 		}
-
-		TEST_METHOD(TestShiftEast)
+		TEST_METHOD(TestShiftWest)
 		{
 			Assert::AreEqual(
 				(UINT64_C(0b00001100) << (8 * 7)) +
@@ -91,32 +89,53 @@ namespace tests
 				(UINT64_C(0b00010010) << (8 * 2)) +
 				(UINT64_C(0b00001100) << (8 * 1)) +
 				(UINT64_C(0b00001100) << (8 * 0)),
-				chess::BB::shift_E(bb)
+				BB::shift_W(bb)
 			);
 			auto shifted_bb = bb;
-			for (int i = 0; i < 8; ++i, shifted_bb = chess::BB::shift_E(shifted_bb)) {
-				Assert::AreEqual(shifted_bb, chess::BB::shift_E(bb, i));
+			for (int i = 0; i < 8; ++i, shifted_bb = BB::shift_W(shifted_bb)) {
+				Assert::AreEqual(shifted_bb, BB::shift_W(bb, i));
 			}
 		}
-
 		TEST_METHOD(TestShiftNE)
 		{
-			Assert::AreEqual(chess::BB::shift_E(chess::BB::shift_N(bb)), chess::BB::shift_NE(bb));
+			Assert::AreEqual(BB::shift_E(BB::shift_N(bb)), BB::shift_NE(bb));
 		}
-
 		TEST_METHOD(TestShiftNW)
 		{
-			Assert::AreEqual(chess::BB::shift_W(chess::BB::shift_N(bb)), chess::BB::shift_NW(bb));
+			Assert::AreEqual(BB::shift_W(BB::shift_N(bb)), BB::shift_NW(bb));
 		}
-
 		TEST_METHOD(TestShiftSE)
 		{
-			Assert::AreEqual(chess::BB::shift_E(chess::BB::shift_S(bb)), chess::BB::shift_SE(bb));
+			Assert::AreEqual(BB::shift_E(BB::shift_S(bb)), BB::shift_SE(bb));
 		}
-
 		TEST_METHOD(TestShiftSW)
 		{
-			Assert::AreEqual(chess::BB::shift_W(chess::BB::shift_S(bb)), chess::BB::shift_SW(bb));
+			Assert::AreEqual(BB::shift_W(BB::shift_S(bb)), BB::shift_SW(bb));
+		}
+
+		TEST_METHOD(TestFillNorthOccluded)
+		{
+			Assert::AreEqual(
+				(UINT64_C(0b10000010) << (8 * 7)) +
+				(UINT64_C(0b10000010) << (8 * 6)) +
+				(UINT64_C(0b00000000) << (8 * 5)) +
+				(UINT64_C(0b01000000) << (8 * 4)) +
+				(UINT64_C(0b01000100) << (8 * 3)) +
+				(UINT64_C(0b01000100) << (8 * 2)) +
+				(UINT64_C(0b01000100) << (8 * 1)) +
+				(UINT64_C(0b00000000) << (8 * 0)),
+				BB::fill_N_occluded(
+					(UINT64_C(0b00000000) << (8 * 7)) +
+					(UINT64_C(0b10000010) << (8 * 6)) +
+					(UINT64_C(0b00000000) << (8 * 5)) +
+					(UINT64_C(0b00000000) << (8 * 4)) +
+					(UINT64_C(0b00000000) << (8 * 3)) +
+					(UINT64_C(0b00000000) << (8 * 2)) +
+					(UINT64_C(0b01000100) << (8 * 1)) +
+					(UINT64_C(0b00000000) << (8 * 0)),
+					~(BB::R5 ^ BB::G5 ^ BB::G6)
+				)
+			);
 		}
 	};
 }

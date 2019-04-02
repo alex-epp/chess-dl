@@ -1,101 +1,16 @@
 #ifndef CHESS_H
 #define CHESS_H
 
+#include "bitboard.h"
 #include "bitscan.h"
 
-#include <cstdint>
+#include <sstream>
 #include <string>
 #include <iostream>
+#include <iterator>
 #include <vector>
 
 namespace chess {
-
-	namespace BB {
-		using BitBoard = std::uint64_t;
-
-		BitBoard constexpr rank(const int r) {
-			return UINT64_C(0xFF) << 8 * r;
-		}
-		BitBoard constexpr file(const int f) {
-			return (UINT64_C(0x0101010101010101) << f);
-		}
-		BitBoard constexpr from_file_rank(const int f, const int r) {
-			return UINT64_C(0x01) << (f + (r << 3));
-		}
-
-		BitBoard constexpr west_files(int num_files) {
-			BitBoard files = 0;
-			for (auto f = 7; num_files > 0; --f, --num_files)
-				files |= file(f);
-			return files;
-		}
-		BitBoard constexpr east_files(int num_files) {
-			BitBoard files = 0;
-			for (auto f = 0; num_files > 0; ++f, --num_files)
-				files |= file(f);
-			return files;
-		}
-
-		template <typename T>
-		T& print(T& stream, std::uint64_t BB) {
-			for (int r = 7; r >= 0; --r) {
-				for (int f = 0; f < 8; ++f) {
-					stream << ((BB & BB::rank(r) & BB::file(f)) ? "1 " : ". ");
-				}
-				stream << std::endl;
-			}
-			return stream;
-		}
-
-		constexpr std::uint64_t R1 = rank(0), R2 = rank(1), R3 = rank(2), R4 = rank(3), R5 = rank(4), R6 = rank(5), R7 = rank(6), R8 = rank(7);
-		constexpr std::uint64_t A = file(0), B = file(1), C = file(2), D = file(3), E = file(4), F = file(5), G = file(6), H = file(7);
-
-		constexpr std::uint64_t A1 = from_file_rank(0, 0), A2 = from_file_rank(0, 1), A3 = from_file_rank(0, 2), A4 = from_file_rank(0, 3), A5 = from_file_rank(0, 4), A6 = from_file_rank(0, 5), A7 = from_file_rank(0, 6), A8 = from_file_rank(0, 7);
-		constexpr std::uint64_t B1 = from_file_rank(1, 0), B2 = from_file_rank(1, 1), B3 = from_file_rank(1, 2), B4 = from_file_rank(1, 3), B5 = from_file_rank(1, 4), B6 = from_file_rank(1, 5), B7 = from_file_rank(1, 6), B8 = from_file_rank(1, 7);
-		constexpr std::uint64_t C1 = from_file_rank(2, 0), C2 = from_file_rank(2, 1), C3 = from_file_rank(2, 2), C4 = from_file_rank(2, 3), C5 = from_file_rank(2, 4), C6 = from_file_rank(2, 5), C7 = from_file_rank(2, 6), C8 = from_file_rank(2, 7);
-		constexpr std::uint64_t D1 = from_file_rank(3, 0), D2 = from_file_rank(3, 1), D3 = from_file_rank(3, 2), D4 = from_file_rank(3, 3), D5 = from_file_rank(3, 4), D6 = from_file_rank(3, 5), D7 = from_file_rank(3, 6), D8 = from_file_rank(3, 7);
-		constexpr std::uint64_t E1 = from_file_rank(4, 0), E2 = from_file_rank(4, 1), E3 = from_file_rank(4, 2), E4 = from_file_rank(4, 3), E5 = from_file_rank(4, 4), E6 = from_file_rank(4, 5), E7 = from_file_rank(4, 6), E8 = from_file_rank(4, 7);
-		constexpr std::uint64_t F1 = from_file_rank(5, 0), F2 = from_file_rank(5, 1), F3 = from_file_rank(5, 2), F4 = from_file_rank(5, 3), F5 = from_file_rank(5, 4), F6 = from_file_rank(5, 5), F7 = from_file_rank(5, 6), F8 = from_file_rank(5, 7);
-		constexpr std::uint64_t G1 = from_file_rank(6, 0), G2 = from_file_rank(6, 1), G3 = from_file_rank(6, 2), G4 = from_file_rank(6, 3), G5 = from_file_rank(6, 4), G6 = from_file_rank(6, 5), G7 = from_file_rank(6, 6), G8 = from_file_rank(6, 7);
-		constexpr std::uint64_t H1 = from_file_rank(7, 0), H2 = from_file_rank(7, 1), H3 = from_file_rank(7, 2), H4 = from_file_rank(7, 3), H5 = from_file_rank(7, 4), H6 = from_file_rank(7, 5), H7 = from_file_rank(7, 6), H8 = from_file_rank(7, 7);
-
-		constexpr BitBoard shift_N(BitBoard bb) {
-			return bb << 8;
-		}
-		constexpr BitBoard shift_N(BitBoard bb, int amount) {
-			return bb << (8 * amount);
-		}
-		constexpr BitBoard shift_S(BitBoard bb) {
-			return bb >> 8;
-		}
-		constexpr BitBoard shift_S(BitBoard bb, int amount) {
-			return bb >> (8 * amount);
-		}
-		constexpr BitBoard shift_E(BitBoard bb) {
-			return (bb >> 1) & ~H;
-		}
-		constexpr BitBoard shift_E(BitBoard bb, int amount) {
-			return (bb >> amount) & ~west_files(amount);
-		}
-		constexpr BitBoard shift_W(BitBoard bb) {
-			return (bb << 1) & ~A;
-		}
-		constexpr BitBoard shift_W(BitBoard bb, int amount) {
-			return (bb << amount) & ~east_files(amount);
-		}
-		constexpr BitBoard shift_NE(BitBoard bb) {
-			return (bb << 7) & ~H;
-		}
-		constexpr BitBoard shift_NW(BitBoard bb) {
-			return (bb << 9) & ~A;
-		}
-		constexpr BitBoard shift_SE(BitBoard bb) {
-			return (bb >> 9) & ~H;
-		}
-		constexpr BitBoard shift_SW(BitBoard bb) {
-			return (bb >> 7) & ~A;
-		}
-	}
 
 	class Piece {
 	public:
@@ -240,11 +155,18 @@ namespace chess {
 		void load_FEN(std::string fen) {
 			this->clear();
 
+			std::istringstream iss(fen);
+			std::vector<std::string> tokens{std::istream_iterator<std::string>{iss},
+					                        std::istream_iterator<std::string>{}};
+			auto board_fen = tokens[0];
+			auto turn_fen = tokens[1];
+			auto castle_rights_fen = tokens[2];
+			auto en_passant_fen = tokens[3];
+			auto half_move_fen = tokens[4];
+			auto full_move_fen = tokens[5];
+
 			int file = 0, rank = 7;
-			for (auto c : fen) {
-				if (c == ' ') {
-					break;
-				}
+			for (auto c : board_fen) {
 				if (c == '/') {
 					--rank;
 					file = 0;
@@ -257,12 +179,15 @@ namespace chess {
 					++file;
 				}
 			}
+
+			this->en_passant_target = PosIndex::from_uci(en_passant_fen);
 		}
 		void clear() {
 			for (int i = 0; i < 8; ++i)
 				this->piece_BB[i] = 0;
 			for (int i = 0; i < 64; ++i)
 				this->piece_mailbox[i].clear();
+			this->en_passant_target = UINT_MAX;
 		}
 
 		auto pieces() const {
@@ -379,14 +304,15 @@ namespace chess {
 
 		// Mailbox stored with least-significant-file-mapping
 		Piece piece_mailbox[64];
+
+		// Position index behind the pawn that just made a two-square move.
+		// If no such pawn exists, set to UINT_MAX
+		unsigned int en_passant_target;
 	};
 	inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
 		return board.print(stream);
 	}
 
-	/*
-	 * BoardBoard with move generation added. Uses mirroring so that internally it always moves as if it's white.
-	 */
 	class Board : public BaseBoard {
 	public:
 		Board(std::string fen = STARTING_FEN) : BaseBoard(fen) {}
@@ -401,13 +327,32 @@ namespace chess {
 			auto piece = this->piece_mailbox[from];
 			auto flags = Move::QUIET;
 
+			if (piece.type() == Piece::PAWN) {
+				if ((PosIndex::rank(from) == 1 && PosIndex::rank(to) == 3) ||
+					(PosIndex::rank(from) == 6 && PosIndex::rank(to) == 4)) {
+					flags |= Move::D_P_PUSH;
+				}
+				else if (to == this->en_passant_target) {
+					flags |= Move::EN_CAPTURE;
+				}
+			}
+
+			if (piece.type() == Piece::KING) {
+				if ((from == PosIndex::E1 && to == PosIndex::G1) ||
+				    (from == PosIndex::E8 && to == PosIndex::G8)) {
+					flags |= Move::K_CASTLE;
+				}
+				else if ((from == PosIndex::E1 && to == PosIndex::C1) ||
+				         (from == PosIndex::E8 && to == PosIndex::C8)) {
+					flags |= Move::Q_CASTLE;
+				}
+			}
+
 			if (this->piece_mailbox[to].type() != Piece::NONE) {
 				flags |= Move::CAPTURE;
 			}
 
-
-
-			this->push_move(Move(from, to, flags));
+			this->push_move(Move(from, to, flags, promo_type));
 		}
 		void push_move(Move move) {
 			auto from_BB = PosIndex::to_BB_mask(move.from());
@@ -427,77 +372,37 @@ namespace chess {
 			if (move.is_en_capture())
 				this->piece_mailbox[captured_index].clear();
 
+			if (move.is_capture()) {
+				this->piece_BB[captured_piece.type()] ^= to_BB;
+				this->piece_BB[captured_piece.colour()] ^= to_BB;
+			}
+
 			if (move.is_promotion()) {
 				this->piece_mailbox[move.to()] = Piece(move.promoted_type(), piece.colour());
 				this->piece_BB[piece.type()] ^= to_BB;
 				this->piece_BB[move.promoted_type()] ^= to_BB;
 			}
 
-			if (move.is_capture()) {
-				this->piece_BB[captured_piece.type()] ^= to_BB;
-				this->piece_BB[captured_piece.colour()] ^= to_BB;
-			}
-
 			if (move.is_castle()) {
-				// Castling not yet implemented
+				unsigned int rook_from, rook_to;
+				if (move.is_king_castle()) {
+					rook_from = (piece.colour() == Piece::WHITE) ? PosIndex::H1 : PosIndex::H8;
+					rook_to = (piece.colour() == Piece::WHITE) ? PosIndex::F1 : PosIndex::F8;
+				}
+				else {
+					rook_from = (piece.colour() == Piece::WHITE) ? PosIndex::A1 : PosIndex::A8;
+					rook_to = (piece.colour() == Piece::WHITE) ? PosIndex::D1 : PosIndex::D8;
+				}
+				auto rook_from_to_BB = PosIndex::to_BB_mask(rook_from) ^ PosIndex::to_BB_mask(rook_to);
+				this->piece_BB[piece.colour()] ^= rook_from_to_BB;
+				this->piece_BB[Piece::ROOK] ^= rook_from_to_BB;
+				this->piece_mailbox[rook_to] = this->piece_mailbox[rook_from];
+				this->piece_mailbox[rook_to].clear();
 			}
 
-			/*if (move.is_quiet() || move.is_double_pawn_push()) {
-				this->piece_mailbox[move.from()].clear();
-				this->piece_mailbox[move.to()] = piece;
-				this->piece_BB[piece.type()] ^= from_to_BB;
-				this->piece_BB[piece.colour()] ^= from_to_BB;
+			if (move.is_double_pawn_push()) {
+				this->en_passant_target = PosIndex::backward(move.to(), piece.colour());
 			}
-			else if (move.is_en_capture()) {
-				auto captured_index = PosIndex::backward(move.to(), piece.colour());
-				auto captured_piece = this->piece_mailbox[captured_index];
-				auto captured_BB = PosIndex::to_BB_mask(captured_index);
-				this->piece_mailbox[move.from()].clear();
-				this->piece_mailbox[captured_index].clear();
-				this->piece_mailbox[move.to()] = piece;
-				this->piece_BB[piece.type()] ^= from_to_BB;
-				this->piece_BB[piece.colour()] ^= from_to_BB;
-				this->piece_BB[captured_piece.type()] ^= captured_BB;
-				this->piece_BB[captured_piece.colour()] ^= captured_BB;
-			}
-			else if (move.is_capture() && !move.is_promotion()) {
-				auto captured_piece = this->piece_mailbox[move.to()];
-				this->piece_mailbox[move.from()].clear();
-				this->piece_mailbox[move.to()] = piece;
-				this->piece_BB[piece.type()] ^= from_to_BB;
-				this->piece_BB[piece.colour()] ^= from_to_BB;
-				this->piece_BB[captured_piece.type()] ^= to_BB;
-				this->piece_BB[captured_piece.colour()] ^= to_BB;
-			}
-			else if (!move.is_capture() && move.is_promotion()) {
-				auto promoted_type = move.promoted_type();
-				this->piece_mailbox[move.from()].clear();
-				this->piece_mailbox[move.to()] = Piece(promoted_type, piece.colour());
-				this->piece_BB[piece.type()] ^= from_to_BB;
-				this->piece_BB[promoted_type] ^= to_BB;
-				this->piece_BB[piece.colour()] ^= from_to_BB;
-			}
-			else if (move.is_capture() && move.is_promotion()) {
-				auto captured_piece = this->piece_mailbox[move.to()];
-				auto promoted_type = move.promoted_type();
-				this->piece_mailbox[move.from()].clear();
-				this->piece_mailbox[move.to()] = Piece(promoted_type, piece.colour());
-				this->piece_BB[piece.type()] ^= from_BB;
-				this->piece_BB[promoted_type] ^= to_BB;
-				this->piece_BB[piece.colour()] ^= from_to_BB;
-				this->piece_BB[captured_piece.type()] ^= to_BB;
-				this->piece_BB[captured_piece.colour()] ^= to_BB;
-			}
-			else if (move.is_castle()) {
-				auto castle_piece = this->piece_mailbox[move.castle_target()];
-				auto castle_BB = PosIndex::to_BB_mask(move.castle_target());
-				this->piece_mailbox[move.from()] = castle_piece;
-				this->piece_mailbox[move.to()] = piece;
-				this->piece_mailbox[move.castle_target()].clear();
-				this->piece_BB[piece.type()] ^= from_to_BB;
-				this->piece_BB[castle_piece.type()] ^= (castle_BB | from_BB);
-				this->piece_BB[piece.colour()] ^= castle_BB;
-			}*/
 		}
 
 	private:
@@ -530,6 +435,7 @@ namespace chess {
 
 		void add_pseudo_legal_pawn_move(std::vector<Move>& moves, unsigned int from, unsigned int to, unsigned int flags) {
 			if (!this->is_move_pinned(from, to)) {
+				// TODO: pretty sure this should be rank 7
 				if (PosIndex::rank(to) == 8) {
 					moves.emplace_back(from, to, flags | Move::N_PROMOTION);
 					moves.emplace_back(from, to, flags | Move::B_PROMOTION);
@@ -540,6 +446,10 @@ namespace chess {
 					moves.emplace_back(from, to, flags);
 				}
 			}
+		}
+
+		bool is_move_pinned(unsigned int from, unsigned int to) {
+			return false;
 		}
 	};
 }

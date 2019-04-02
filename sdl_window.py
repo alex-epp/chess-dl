@@ -1,3 +1,4 @@
+import state
 import board_renderer
 import pygame
 import configparser
@@ -175,3 +176,42 @@ class SDLDragger:
         if self._enabled:
             for l in self._event_listeners:
                 l(event)
+
+
+class Button:
+    def __init__(self, surface: pygame.Surface, hover_surface: pygame.Surface, pressed_surface: pygame.Surface):
+        self._surface = surface
+        self._hover_surface = hover_surface
+        self._pressed_surface = pressed_surface
+
+        self._is_hovering = False
+        self._is_pressing = False
+
+        self._event_listeners = set()
+
+    def process_event(self, event: pygame.event.Event):
+        if event.type == pygame.MOUSEMOTION:
+            self._is_hovering = self._surface.get_bounding_rect().collidepoint(event.pos)
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            self._is_pressing = self._is_hovering
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self._is_pressing:
+                self._trigger_press_event()
+            self._is_pressing = False
+
+    def register_on_press(self, func):
+        self._event_listeners.add(func)
+
+    def surface(self):
+        if self._is_hovering:
+            if self._is_pressing:
+                return self._pressed_surface
+            else:
+                return self._hover_surface
+        else:
+            return self._surface
+
+    def _trigger_press_event(self):
+        for listener in self._event_listeners:
+            listener()
+

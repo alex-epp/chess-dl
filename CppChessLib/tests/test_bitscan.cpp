@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 
 #include <cstdint>
+#include <limits>
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -19,7 +20,7 @@ namespace tests
 			for (unsigned long i = 0; i < 64; ++i)
 				Assert::AreEqual(i, bitscan::first(UINT64_C(1) << i));
 
-			Assert::AreEqual(-1UL, bitscan::first(UINT64_C(0)));
+			Assert::AreEqual(ULONG_MAX, bitscan::first(UINT64_C(0)));
 		}
 
 		TEST_METHOD(TestNext)
@@ -30,7 +31,7 @@ namespace tests
 			Assert::AreEqual(6UL, bitscan::next(5, bits));
 			Assert::AreEqual(7UL, bitscan::next(6, bits));
 			Assert::AreEqual(10UL, bitscan::next(7, bits));
-			Assert::AreEqual(-1UL, bitscan::next(10, bits));
+			Assert::AreEqual(ULONG_MAX, bitscan::next(10, bits));
 		}
 
 		TEST_METHOD(TestForEach)
