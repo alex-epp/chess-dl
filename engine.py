@@ -112,7 +112,7 @@ class EngineInterface:
 
     def move(self, fen: str):
         try:
-            return self.opening_book.weighted_choice(chess.Board(fen=fen)).move().uci()
+            return self.opening_book.weighted_choice(chess.Board(fen=fen)).move.uci()
         except IndexError:
             self._conn.send(fen)
             return self._conn.recv()

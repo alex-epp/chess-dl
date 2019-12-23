@@ -6,7 +6,7 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-#include "../CppChessLib/bitscan.h"
+#include "../CppChessLib/bitscan.hpp"
 
 
 namespace tests

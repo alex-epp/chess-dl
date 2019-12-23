@@ -4,7 +4,6 @@
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 #include "../CppChessLib/chess.h"
-#include "../CppChessLib/chess.cpp" // ...yeah, I should *not* have to ever do this!
 
 using namespace chess;
 
@@ -12,12 +11,17 @@ using namespace chess;
 namespace Microsoft {
 	namespace VisualStudio {
 		namespace CppUnitTestFramework {
-			std::wstring ToString(const Piece::Type& piece) {
-				return ToString(static_cast<int>(piece));
+			inline std::wstring ToString(const chess::Piece::Type& piece) {
+				return piece_repr(piece).data();
+			}
+
+			inline std::wstring ToString(const chess::PositionIndex& position) {
+				return ToString(position.get());
 			}
 		}
 	}
 }
+
 
 namespace tests
 {
@@ -36,15 +40,15 @@ namespace tests
 			for (unsigned int from = 0; from < 64; ++from) {
 				for (unsigned int to = 0; to < 64; ++to) {
 					auto m = Move(from, to);
-					Assert::AreEqual(from, m.from());
-					Assert::AreEqual(to, m.to());
+					Assert::AreEqual(PositionIndex(from), m.from());
+					Assert::AreEqual(PositionIndex(to), m.to());
 				}
 			}
 		}
 
 		TEST_METHOD(TestPromotionType)
 		{
-			auto from = PosIndex::from_uci("E2"), to = PosIndex::from_uci("E4");
+			constexpr auto from = PositionIndex("E2"), to = PositionIndex("E4");
 
 			Assert::AreEqual(Piece::BISHOP, Move(from, to, Move::B_PROMOTION).promoted_type());
 			Assert::AreEqual(Piece::BISHOP, Move(from, to, Move::B_PROMO_CAPTURE).promoted_type());

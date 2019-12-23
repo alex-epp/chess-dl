@@ -52,7 +52,7 @@ class App:
         elif event.type == SDLDragger.Event.END:
             self._overlay.pop('drag_start', None)
             self._overlay.pop('highlight', None)
-            if self._state.is_at(self.PLAYER_TURN):
+            if self._state.is_at(self.PLAYER_TURN) and event.start.uci != event.end.uci:
                 move = chess.Move.from_uci(event.start.uci + event.end.uci)
                 if self._board.is_legal(move):
                     self._make_player_move(move)
