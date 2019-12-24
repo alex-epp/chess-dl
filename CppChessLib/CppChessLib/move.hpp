@@ -27,7 +27,7 @@ namespace chess {
 		static const unsigned int R_PROMO_CAPTURE = CAPTURE | R_PROMOTION;
 		static const unsigned int Q_PROMO_CAPTURE = CAPTURE | Q_PROMOTION;
 
-		constexpr Move(PositionIndex f, PositionIndex t, unsigned int flags = QUIET, Piece::Type p = Piece::NONE) {
+		constexpr Move(PositionIndex f, PositionIndex t, unsigned int flags = QUIET, Piece::Type p = Piece::NO_TYPE) {
 			assert(p != Piece::PAWN && p != Piece::KING);
 
 			switch (p) {

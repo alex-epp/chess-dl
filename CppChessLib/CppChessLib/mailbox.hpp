@@ -15,7 +15,7 @@ namespace chess {
 	class Mailbox {
 	public:
 		inline bool is_piece_at(PositionIndex position) const {
-			return this->piece_mailbox[position.get()].type() != Piece::NONE;
+			return this->piece_mailbox[position.get()].type() != Piece::NO_TYPE;
 		}
 		inline Piece get(PositionIndex position) const {
 			return this->piece_mailbox[position.get()];

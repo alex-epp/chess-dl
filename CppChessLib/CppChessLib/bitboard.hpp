@@ -18,13 +18,13 @@ namespace chess {
 		constexpr static unsigned int END = bitscan::END;
 
 	public:
-		BitBoardBitScanIterator(BitBoard*);
+		BitBoardBitScanIterator(const BitBoard*);
 		BitBoardBitScanIterator& operator ++ ();
 		bool operator != (const unsigned int) const;
 		PositionIndex operator * () const;
 
 	private:
-		BitBoard* bb;
+		const BitBoard* bb;
 		PositionIndex position;
 	};
 
@@ -68,8 +68,8 @@ namespace chess {
 		}
 
 	public: // range-based iteration
-		auto begin() { return BitBoardBitScanIterator(this); }
-		auto end() { return BitBoardBitScanIterator::END; }
+		auto begin() const { return BitBoardBitScanIterator(this); }
+		auto end() const { return BitBoardBitScanIterator::END; }
 
 	public: // Operations we can perform on bitboards
 		constexpr BitBoard shift_N() const {

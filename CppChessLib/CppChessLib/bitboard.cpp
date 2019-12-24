@@ -3,7 +3,7 @@
 
 
 namespace chess {
-	BitBoardBitScanIterator::BitBoardBitScanIterator(BitBoard* bb) : bb(bb), position(bitscan::first(bb->bb)) {}
+	BitBoardBitScanIterator::BitBoardBitScanIterator(const BitBoard* bb) : bb(bb), position(bitscan::first(bb->bb)) {}
 	BitBoardBitScanIterator& BitBoardBitScanIterator::operator ++ () {
 		this->position = bitscan::next(this->position.position_index, this->bb->bb);
 		return *this;

@@ -21,10 +21,12 @@ int main()
 
 	auto b = chess::load_FEN<chess::Board>(chess::STARTING_FEN);
 	std::vector<chess::Move> moves;
+	moves.reserve(100);
 
 	auto start_time = std::chrono::system_clock::now();
-	for (auto i = 0; i < 10'000'000; ++i) {
+	for (auto i = 0; i < 1'000'000; ++i) {
 		b.get_moves(moves);
+		if (moves.empty()) break;
 		auto move = moves[rand() % moves.size()];
 		b.push_move(move);
 		b.flip();

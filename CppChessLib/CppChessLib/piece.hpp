@@ -23,14 +23,14 @@ namespace chess {
 			ROOK,
 			QUEEN,
 			KING,
-			NONE
+			NO_TYPE
 		};
 
 		static Colour enemy_colour(const Colour c) {
 			return static_cast<Colour>(Colour::BLACK - c);
 		}
 
-		constexpr Piece() : m_type(NONE), m_colour(WHITE) {}
+		constexpr Piece() : m_type(NO_TYPE), m_colour(WHITE) {}
 		constexpr Piece(Type t, Colour c) : m_type(t), m_colour(c) {}
 		constexpr Piece(char name) : Piece() {
 			auto name_lower = util::tolower(name);
@@ -44,7 +44,7 @@ namespace chess {
 			case 'r': this->m_type = ROOK; break;
 			case 'q': this->m_type = QUEEN; break;
 			case 'k': this->m_type = KING; break;
-			default: this->m_type = NONE; break;
+			default: this->m_type = NO_TYPE; break;
 			}
 		}
 
@@ -52,12 +52,12 @@ namespace chess {
 		constexpr auto colour() const { return this->m_colour; }
 
 		constexpr bool operator == (const Piece& rhs) const {
-			return (this->type() == NONE && rhs.type() == NONE)
+			return (this->type() == NO_TYPE && rhs.type() == NO_TYPE)
 				|| (this->colour() == rhs.colour() && this->type() == rhs.type());
 		}
 
 		void swap_colour() { this->m_colour = enemy_colour(this->m_colour); }
-		void clear() { this->m_type = NONE; }
+		void clear() { this->m_type = NO_TYPE; }
 
 	private:
 		Type m_type;
