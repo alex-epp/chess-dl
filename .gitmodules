@@ -3,4 +3,4 @@
 	url = https://github.com/tqdm/tqdm.cpp
 [submodule "CppChessLib/Train/progress-cpp"]
 	path = CppChessLib/Train/progress-cpp
-	url = https://github.com/prakhar1989/progress-cpp
+	url = https://github.com/alex-epp/progress-cpp

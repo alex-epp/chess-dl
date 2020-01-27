@@ -8,7 +8,7 @@
 #include <fstream>
 #include <experimental/filesystem>
 
-#include "progress-cpp/ProgressBar.hpp"
+#include "progress-cpp/progress_bar.hpp"
 
 namespace fs = std::experimental::filesystem;
 
@@ -43,16 +43,16 @@ void pgn_minify(const fs::path& in_path, const fs::path& out_path) {
 
     std::ofstream out_stream(out_path, std::ios::out);
 
-    ProgressBar<long> bar(fs::file_size(in_path), 50);
-    while (std::getline(in_stream, line)) {
-        if (line[0] != '[' && line[0] != '\n') {
-            out_stream << pgn_line_minify(line);
-        }
+    {
+        ProgressBar<long> bar(fs::file_size(in_path), 50);
+        while (std::getline(in_stream, line)) {
+            if (line[0] != '[' && line[0] != '\n') {
+                out_stream << pgn_line_minify(line);
+            }
 
-        bar.update(in_stream.tellg() - bar.get());
-        bar.display();
+            bar.update(in_stream.tellg() - bar.get());
+        }
     }
-    bar.done();
 }
 
 
