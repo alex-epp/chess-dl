@@ -1,3 +1,6 @@
+# ssh private keys
+*.pem
+
 # Prerequisites
 *.d
 
