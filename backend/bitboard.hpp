@@ -117,6 +117,14 @@ namespace chess {
 #endif
 		}
 
+		constexpr size_t pop_count() const {
+#ifdef _WIN32
+#error("pop_count() not implemented for windows yet.")
+#else
+	        return __builtin_popcount(this->bb);
+#endif
+	    }
+
 		constexpr BitBoard fill_N_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			gen |= empty & (gen << 8);
