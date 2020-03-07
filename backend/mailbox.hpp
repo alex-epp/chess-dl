@@ -2,7 +2,7 @@
 
 
 #include "piece.hpp"
-#include "position_index.hpp"
+#include "square.hpp"
 
 #include <array>
 #include <cassert>
@@ -14,16 +14,16 @@ namespace chess {
 	*/
 	class Mailbox {
 	public:
-		inline bool is_piece_at(PositionIndex position) const {
+		inline bool is_piece_at(Square position) const {
 			return this->piece_mailbox[position.get()].type() != Piece::NO_TYPE;
 		}
-		inline Piece get(PositionIndex position) const {
+		inline Piece get(Square position) const {
 			return this->piece_mailbox[position.get()];
 		}
-		inline void set(PositionIndex position, Piece piece) {
+		inline void set(Square position, Piece piece) {
 			this->piece_mailbox[position.get()] = piece;
 		}
-		inline void clear(PositionIndex position) {
+		inline void clear(Square position) {
 			this->piece_mailbox[position.get()].clear();
 		}
 		inline void clear() {

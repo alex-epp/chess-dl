@@ -12,6 +12,7 @@
 #include <string_view>
 #include <iostream>
 #include <iterator>
+#include <regex>
 #include <vector>
 
 namespace chess {
@@ -20,7 +21,7 @@ namespace chess {
 
 	class BaseBoard {
 	public:
-		BaseBoard(Piece::Colour turn, std::string_view castle_rights, PositionIndex en_passant_target, unsigned int half_move, unsigned int full_move)
+		BaseBoard(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
 			: en_passant_target(en_passant_target)
 		{
 			this->can_white_king_castle = castle_rights.find_first_of('K') != castle_rights.npos;
