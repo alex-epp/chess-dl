@@ -1,0 +1,40 @@
+[meta]
+tile_size = [200, 200]
+texture_file = sprites.png
+
+[labels]
+black = [0, 400]
+white = [200, 400]
+
+move_potential = [400, 400]
+move_from = [600, 400]
+move_to = [600, 400]
+hover = [800, 400]
+
+p = [0, 0]
+n = [200, 0]
+b = [400, 0]
+r = [600, 0]
+q = [800, 0]
+k = [1000, 0]
+
+p_selected = [0, 600]
+n_selected = [200, 600]
+b_selected = [400, 600]
+r_selected = [600, 600]
+q_selected = [800, 600]
+k_selected = [1000, 600]
+
+P = [0, 200]
+N = [200, 200]
+B = [400, 200]
+R = [600, 200]
+Q = [800, 200]
+K = [1000, 200]
+
+P_selected = [0, 800]
+N_selected = [200, 800]
+B_selected = [400, 800]
+R_selected = [600, 800]
+Q_selected = [800, 800]
+K_selected = [1000, 800]
