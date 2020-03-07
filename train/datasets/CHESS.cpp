@@ -2,7 +2,7 @@
 // Created by aepp2 on 3/6/2020.
 //
 
-#include "chess.hpp"
+#include "CHESS.hpp"
 #include "../../backend/fen.hpp"
 
 #include <utility>

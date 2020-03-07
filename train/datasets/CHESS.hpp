@@ -2,8 +2,7 @@
 // Created by aepp2 on 3/6/2020.
 //
 
-#ifndef CHESS_CHESS_HPP
-#define CHESS_CHESS_HPP
+#pragma once
 
 #include <fstream>
 #include <filesystem>
