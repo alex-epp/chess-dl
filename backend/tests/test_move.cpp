@@ -17,14 +17,14 @@ namespace tests
 			for (unsigned int from = 0; from < 64; ++from) {
 				for (unsigned int to = 0; to < 64; ++to) {
 					auto m = Move(from, to);
-					REQUIRE(PositionIndex(from) == m.from());
-					REQUIRE(PositionIndex(to) == m.to());
+					REQUIRE(Square(from) == m.from());
+					REQUIRE(Square(to) == m.to());
 				}
 			}
 		}
         SECTION("TestPromotionType")
 		{
-			constexpr auto from = PositionIndex("E2"), to = PositionIndex("E4");
+			constexpr auto from = Square("E2"), to = Square("E4");
 
 			REQUIRE(Piece::BISHOP == Move(from, to, Move::B_PROMOTION).promoted_type());
 			REQUIRE(Piece::BISHOP == Move(from, to, Move::B_PROMO_CAPTURE).promoted_type());

@@ -12,7 +12,7 @@ namespace chess {
 			for (int fi = 0; fi < 8; ++fi) {
 				auto r = static_cast<Rank>(ri);
 				auto f = static_cast<File>(fi);
-				auto piece = board.get_piece_at(PositionIndex(f, r));
+				auto piece = board.get_piece_at(Square(f, r));
 
 				stream << piece_repr(piece);
 			}

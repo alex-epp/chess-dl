@@ -33,13 +33,13 @@ namespace chess {
 			for (int i = 0; i < 8; ++i)
 				this->piece_BB[i] = 0;
 			this->piece_mailbox.clear();
-			this->en_passant_target = PositionIndex();
+			this->en_passant_target = Square();
 
 			for(int i = 0; i < 8; ++i)
 			    assert(this->piece_BB[i].empty());
 			for(int i = 0; i < 64; ++i)
 			    assert(this->piece_mailbox.get(i).type() == Piece::NO_TYPE);
-			assert(this->en_passant_target == PositionIndex::EMPTY);
+			assert(this->en_passant_target == Square::EMPTY);
 		}
 
 		auto pieces() const {
@@ -92,20 +92,40 @@ namespace chess {
 			return this->pieces(Piece::KING, c);
 		}
 
-		auto is_piece_at(PositionIndex position) const {
+		auto is_piece_at(Square position) const {
 			return this->piece_mailbox.is_piece_at(position);
 		}
-		auto get_piece_at(PositionIndex position) const {
+		auto get_piece_at(Square position) const {
 			return this->piece_mailbox.get(position);
 		}
 
-		void put_piece(Piece piece, PositionIndex position) {
+		auto en_target() const {
+		    return this->en_passant_target;
+		}
+
+		auto white_king_castling_rights() const {
+		    return this->can_white_king_castle;
+		}
+
+        auto white_queen_castling_rights() const {
+            return this->can_white_queen_castle;
+        }
+
+        auto black_king_castling_rights() const {
+            return this->can_black_king_castle;
+        }
+
+        auto black_queen_castling_rights() const {
+            return this->can_black_queen_castle;
+        }
+
+		void put_piece(Piece piece, Square position) {
 			this->remove_piece(position);
 			this->piece_BB[piece.type()] |= position;
 			this->piece_BB[piece.colour()] |= position;
 			this->piece_mailbox.set(position, piece);
 		}
-		void remove_piece(PositionIndex position) {
+		void remove_piece(Square position) {
 			for (int i = 0; i < 8; ++i)
 				this->piece_BB[i] &= ~BitBoard(position);
 			this->piece_mailbox.clear(position);
@@ -124,7 +144,7 @@ namespace chess {
 
 		// Position index behind the pawn that just made a two-square move.
 		// If no such pawn exists, set to UINT_MAX
-		PositionIndex en_passant_target;
+		Square en_passant_target;
 
 		// Castling rights
 		bool can_white_king_castle, can_white_queen_castle, can_black_king_castle, can_black_queen_castle;
