@@ -60,8 +60,8 @@ namespace chess {
 		}
 
 	public: // Data access
-		[[nodiscard]] constexpr bool is_piece_at(Square position) const {
-			return !(*this & position).empty();
+		[[nodiscard]] constexpr bool is_piece_at(Square square) const {
+			return !(*this & square).empty();
 		}
         [[nodiscard]] constexpr bool empty() const {
 			return this->bb == UINT64_C(0);

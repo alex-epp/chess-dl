@@ -93,11 +93,11 @@ namespace chess {
 			return this->pieces(Piece::KING, c);
 		}
 
-		auto is_piece_at(Square position) const {
-			return this->piece_mailbox.is_piece_at(position);
+		auto is_piece_at(Square square) const {
+			return this->piece_mailbox.is_piece_at(square);
 		}
-		auto get_piece_at(Square position) const {
-			return this->piece_mailbox.get(position);
+		auto get_piece_at(Square square) const {
+			return this->piece_mailbox.get(square);
 		}
 
 		auto en_target() const {
@@ -120,20 +120,20 @@ namespace chess {
             return this->can_black_queen_castle;
         }
 
-		void put_piece(Piece piece, Square position) {
-			this->remove_piece(position);
-			this->piece_BB[piece.type()] |= position;
-			this->piece_BB[piece.colour()] |= position;
-			this->piece_mailbox.set(position, piece);
+		void put_piece(Piece piece, Square square) {
+			this->remove_piece(square);
+			this->piece_BB[piece.type()] |= square;
+			this->piece_BB[piece.colour()] |= square;
+			this->piece_mailbox.set(square, piece);
 		}
-		void remove_piece(Square position) {
+		void remove_piece(Square square) {
 			for (int i = 0; i < 8; ++i)
-				this->piece_BB[i] &= ~BitBoard(position);
-			this->piece_mailbox.clear(position);
+				this->piece_BB[i] &= ~BitBoard(square);
+			this->piece_mailbox.clear(square);
 
 			for (int i = 0; i < 8; ++i)
-			    assert(!this->piece_BB[i].is_piece_at(position));
-			assert(!this->piece_mailbox.is_piece_at(position));
+			    assert(!this->piece_BB[i].is_piece_at(square));
+			assert(!this->piece_mailbox.is_piece_at(square));
 		}
 
 	protected:
@@ -143,7 +143,7 @@ namespace chess {
 		// Mailbox stored with least-significant-file-mapping
 		Mailbox piece_mailbox;
 
-		// Position index behind the pawn that just made a two-square move.
+		// Square behind the pawn that just made a two-square move.
 		// If no such pawn exists, set to UINT_MAX
 		Square en_passant_target;
 
@@ -156,18 +156,18 @@ namespace chess {
 
 	class Board : public BaseBoard {
 	public:
-		Board(Piece::Colour turn, std::string_view castle_rights, PositionIndex en_passant_target, unsigned int half_move, unsigned int full_move)
+		Board(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
 			: BaseBoard(turn, castle_rights, en_passant_target, half_move, full_move)
 		{}
 
 		void push_move(std::string uci) {
 			assert(uci.length() == 4 || uci.length() == 5);
-			auto from = PositionIndex(uci.substr(0, 2));
-			auto to = PositionIndex(uci.substr(2, 2));
+			auto from = Square(uci.substr(0, 2));
+			auto to = Square(uci.substr(2, 2));
 			auto promo_type = (uci.length() > 4) ? Piece(uci[4]).type() : Piece::NO_TYPE;
 			this->push_move(from, to, promo_type);
 		}
-		void push_move(PositionIndex from, PositionIndex to, Piece::Type promo_type = Piece::NO_TYPE) {
+		void push_move(Square from, Square to, Piece::Type promo_type = Piece::NO_TYPE) {
 			auto piece = this->piece_mailbox.get(from);
 			auto flags = Move::QUIET;
 
@@ -187,12 +187,12 @@ namespace chess {
 			}
 
 			if (piece.type() == Piece::KING) {
-				if ((from == PI::E1 && to == PI::G1) ||
-				    (from == PI::E8 && to == PI::G8)) {
+				if ((from == S::E1 && to == S::G1) ||
+				    (from == S::E8 && to == S::G8)) {
 					flags |= Move::K_CASTLE;
 				}
-				else if ((from == PI::E1 && to == PI::C1) ||
-				         (from == PI::E8 && to == PI::C8)) {
+				else if ((from == S::E1 && to == S::C1) ||
+				         (from == S::E8 && to == S::C8)) {
 					flags |= Move::Q_CASTLE;
 				}
 			}
@@ -210,7 +210,7 @@ namespace chess {
 			if (this->is_piece_at(move.to()))
 			    assert(this->piece_mailbox.get(move.to()).colour() == Piece::BLACK);
 			auto type = this->piece_mailbox.get(move.from()).type();
-			if (this->en_passant_target.get() != PositionIndex::EMPTY)
+			if (this->en_passant_target.get() != Square::EMPTY)
 			    assert(this->en_passant_target.rank() == Rank::R6);
 
 			auto from_BB = BitBoard(move.from());
@@ -222,7 +222,7 @@ namespace chess {
 			auto captured_piece = this->piece_mailbox.get(captured_index);
 			auto captured_BB = BitBoard(captured_index);
 
-			this->en_passant_target = PositionIndex::EMPTY;
+			this->en_passant_target = Square::EMPTY;
 
 			if (move.is_capture()) {
 				if (move.to().get() != captured_index.get()) {
@@ -234,8 +234,8 @@ namespace chess {
 				this->piece_BB[captured_piece.colour()] ^= captured_BB;
 
 				if (captured_piece.type() == Piece::ROOK) {
-					if (captured_index == PI::A8) this->can_black_queen_castle = false;
-					if (captured_index == PI::H8) this->can_black_king_castle = false;
+					if (captured_index == S::A8) this->can_black_queen_castle = false;
+					if (captured_index == S::H8) this->can_black_king_castle = false;
 				}
 			}
 			
@@ -251,17 +251,17 @@ namespace chess {
 			}
 
 			if (move.is_castle()) {
-				PositionIndex rook_from = 0, rook_to = 0;
+				Square rook_from = 0, rook_to = 0;
 				if (move.is_king_castle()) {
 					assert(this->can_white_king_castle);
-					rook_from = (piece.colour() == Piece::WHITE) ? PI::H1 : PI::H8;
-					rook_to = (piece.colour() == Piece::WHITE) ? PI::F1 : PI::F8;
+					rook_from = (piece.colour() == Piece::WHITE) ? S::H1 : S::H8;
+					rook_to = (piece.colour() == Piece::WHITE) ? S::F1 : S::F8;
 					this->can_white_king_castle = false;
 				}
 				else {
 					assert(this->can_white_queen_castle);
-					rook_from = (piece.colour() == Piece::WHITE) ? PI::A1 : PI::A8;
-					rook_to = (piece.colour() == Piece::WHITE) ? PI::D1 : PI::D8;
+					rook_from = (piece.colour() == Piece::WHITE) ? S::A1 : S::A8;
+					rook_to = (piece.colour() == Piece::WHITE) ? S::D1 : S::D8;
 					this->can_white_queen_castle = false;
 				}
 				auto rook_from_to_BB = BitBoard(rook_from) ^ BitBoard(rook_to);
@@ -272,8 +272,8 @@ namespace chess {
 			}
 
             if (piece.type() == Piece::ROOK) {
-                if (move.from() == PI::A1) this->can_white_queen_castle = false;
-                if (move.from() == PI::H1) this->can_white_king_castle = false;
+                if (move.from() == S::A1) this->can_white_queen_castle = false;
+                if (move.from() == S::H1) this->can_white_king_castle = false;
             }
             else if (piece.type() == Piece::KING) {
                 this->can_white_king_castle = this->can_white_queen_castle = false;
@@ -292,7 +292,7 @@ namespace chess {
                 assert(this->piece_mailbox.get(move.to()).type() == move.promoted_type());
 			if (captured_index.get() != move.to().get())
 			    assert(!this->is_piece_at(captured_index));
-            if (this->en_passant_target.get() != PositionIndex::EMPTY)
+            if (this->en_passant_target.get() != Square::EMPTY)
                 assert(this->en_passant_target.rank() == Rank::R3);
 			this->check_bb_mailbox_sync();
 		}
@@ -331,7 +331,7 @@ namespace chess {
 			std::swap(this->can_white_queen_castle, this->can_black_queen_castle);
 
 			assert(this->en_passant_target.file() == old_en_passant_target.file());
-			if (this->en_passant_target.get() != PositionIndex::EMPTY)
+			if (this->en_passant_target.get() != Square::EMPTY)
     			assert((int)this->en_passant_target.rank() == (int)Rank::R8 - (int)old_en_passant_target.rank());
 			assert(can_white_king_castle == old_can_black_king_castle);
             assert(can_black_king_castle == old_can_white_king_castle);
@@ -355,117 +355,117 @@ namespace chess {
 			const auto push_BB = this->pawns(Piece::WHITE) & ~this->pieces().shift_S();
 			const auto double_push_BB = push_BB & BB::R2 & ~this->pieces().shift_S(2);
 
-			for (const auto from_position : left_capture_BB) {
-				auto to_position = from_position.northwest();
-				assert(this->get_piece_at(from_position).type() == Piece::PAWN);
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(this->is_piece_at(to_position));
-				assert(this->get_piece_at(to_position).colour() == Piece::BLACK);
-				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::CAPTURE);
+			for (const auto from_square : left_capture_BB) {
+				auto to_square = from_square.northwest();
+				assert(this->get_piece_at(from_square).type() == Piece::PAWN);
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(this->is_piece_at(to_square));
+				assert(this->get_piece_at(to_square).colour() == Piece::BLACK);
+				this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::CAPTURE);
 			}
 
-			for (const auto from_position : right_capture_BB) {
-				auto to_position = from_position.northeast();
-				assert(this->get_piece_at(from_position).type() == Piece::PAWN);
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(this->is_piece_at(to_position));
-				assert(this->get_piece_at(to_position).colour() == Piece::BLACK);
-				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::CAPTURE);
+			for (const auto from_square : right_capture_BB) {
+				auto to_square = from_square.northeast();
+				assert(this->get_piece_at(from_square).type() == Piece::PAWN);
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(this->is_piece_at(to_square));
+				assert(this->get_piece_at(to_square).colour() == Piece::BLACK);
+				this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::CAPTURE);
 			}
 
-			for (const auto from_position : push_BB) {
-				auto to_position = from_position.north();
-				assert(this->get_piece_at(from_position).type() == Piece::PAWN);
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(!this->is_piece_at(to_position));
-				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::QUIET);
+			for (const auto from_square : push_BB) {
+				auto to_square = from_square.north();
+				assert(this->get_piece_at(from_square).type() == Piece::PAWN);
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(!this->is_piece_at(to_square));
+				this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::QUIET);
 			}
 
-			for (const auto from_position : double_push_BB) {
-				auto to_position = from_position.north(2);
-				assert(this->get_piece_at(from_position).type() == Piece::PAWN);
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(!this->is_piece_at(to_position));
-				assert(!this->is_piece_at(to_position.south()));
-				assert(from_position.rank() == Rank::R2);
-				this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::D_P_PUSH);
+			for (const auto from_square : double_push_BB) {
+				auto to_square = from_square.north(2);
+				assert(this->get_piece_at(from_square).type() == Piece::PAWN);
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(!this->is_piece_at(to_square));
+				assert(!this->is_piece_at(to_square.south()));
+				assert(from_square.rank() == Rank::R2);
+				this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::D_P_PUSH);
 			}
 
-			if (this->en_passant_target.get() != PositionIndex::EMPTY) {
+			if (this->en_passant_target.get() != Square::EMPTY) {
 			    assert(this->en_passant_target.rank() == Rank::R6);
 
 				// En-passant capture to the left
-				for (const auto from_position : this->pawns(Piece::WHITE) & BitBoard(this->en_passant_target).shift_SE()) {
-					auto to_position = from_position.northwest();
-					assert(this->get_piece_at(from_position).type() == Piece::PAWN);
-					assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-					assert(!this->is_piece_at(to_position));
-					assert(this->get_piece_at(to_position.south()).type() == Piece::PAWN);
-                    assert(this->get_piece_at(to_position.south()).colour() == Piece::BLACK);
-                    assert(to_position == this->en_passant_target);
-                    this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::EN_CAPTURE);
+				for (const auto from_square : this->pawns(Piece::WHITE) & BitBoard(this->en_passant_target).shift_SE()) {
+					auto to_square = from_square.northwest();
+					assert(this->get_piece_at(from_square).type() == Piece::PAWN);
+					assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+					assert(!this->is_piece_at(to_square));
+					assert(this->get_piece_at(to_square.south()).type() == Piece::PAWN);
+                    assert(this->get_piece_at(to_square.south()).colour() == Piece::BLACK);
+                    assert(to_square == this->en_passant_target);
+                    this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::EN_CAPTURE);
 				}
 
 				// En-passant capture to the right
-				for (const auto from_position : this->pawns(Piece::WHITE) & BitBoard(this->en_passant_target).shift_SW()) {
-					auto to_position = from_position.northeast();
-					assert(this->get_piece_at(from_position).type() == Piece::PAWN);
-					assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-					assert(!this->is_piece_at(to_position));
-                    assert(this->get_piece_at(to_position.south()).type() == Piece::PAWN);
-                    assert(this->get_piece_at(to_position.south()).colour() == Piece::BLACK);
-                    assert(to_position.south() == this->en_passant_target);
-					this->add_pseudo_legal_pawn_move(moves, from_position, to_position, Move::EN_CAPTURE);
+				for (const auto from_square : this->pawns(Piece::WHITE) & BitBoard(this->en_passant_target).shift_SW()) {
+					auto to_square = from_square.northeast();
+					assert(this->get_piece_at(from_square).type() == Piece::PAWN);
+					assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+					assert(!this->is_piece_at(to_square));
+                    assert(this->get_piece_at(to_square.south()).type() == Piece::PAWN);
+                    assert(this->get_piece_at(to_square.south()).colour() == Piece::BLACK);
+                    assert(to_square == this->en_passant_target);
+					this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::EN_CAPTURE);
 				}
 			}
 
 		}
 		void get_knight_moves(std::vector<Move>& moves) const {
-			for (const auto from_position : this->knights(Piece::WHITE)) {
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(this->get_piece_at(from_position).type() == Piece::KNIGHT);
-				auto move_bb = this->knight_attacks(BitBoard(from_position)) & ~this->pieces(Piece::WHITE);
-				for (const auto to_position : move_bb) {
-					assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::BLACK);
-					auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
-					this->add_pseudo_legal_move(moves, from_position, to_position, flags);
+			for (const auto from_square : this->knights(Piece::WHITE)) {
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(this->get_piece_at(from_square).type() == Piece::KNIGHT);
+				auto move_bb = this->knight_attacks(BitBoard(from_square)) & ~this->pieces(Piece::WHITE);
+				for (const auto to_square : move_bb) {
+					assert(!this->is_piece_at(to_square) || this->get_piece_at(to_square).colour() == Piece::BLACK);
+					auto flags = this->piece_mailbox.is_piece_at(to_square) ? Move::CAPTURE : Move::QUIET;
+					this->add_pseudo_legal_move(moves, from_square, to_square, flags);
 				}
 			}
 		}
 		void get_bishop_moves(std::vector<Move>& moves) const {
-			for (const auto from_position : this->bishops(Piece::WHITE)) {
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(this->get_piece_at(from_position).type() == Piece::BISHOP);
-				auto position_bb = BitBoard(from_position);
-				auto move_bb = this->bishop_attacks(position_bb, ~this->pieces()) & ~this->pieces(Piece::WHITE);
-				for (const auto to_position : move_bb) {
-					assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::BLACK);
-					auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
-					this->add_pseudo_legal_move(moves, from_position, to_position, flags);
+			for (const auto from_square : this->bishops(Piece::WHITE)) {
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(this->get_piece_at(from_square).type() == Piece::BISHOP);
+				auto square_bb = BitBoard(from_square);
+				auto move_bb = this->bishop_attacks(square_bb, ~this->pieces()) & ~this->pieces(Piece::WHITE);
+				for (const auto to_square : move_bb) {
+					assert(!this->is_piece_at(to_square) || this->get_piece_at(to_square).colour() == Piece::BLACK);
+					auto flags = this->piece_mailbox.is_piece_at(to_square) ? Move::CAPTURE : Move::QUIET;
+					this->add_pseudo_legal_move(moves, from_square, to_square, flags);
 				}
 			}
 		}
 		void get_rook_moves(std::vector<Move>& moves) const {
-			for (const auto from_position : this->rooks(Piece::WHITE)) {
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(this->get_piece_at(from_position).type() == Piece::ROOK);
-				auto move_bb = this->rook_attacks(BitBoard(from_position), ~this->pieces()) & ~this->pieces(Piece::WHITE);
-				for (const auto to_position : move_bb) {
-					assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::BLACK);
-					auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
-					this->add_pseudo_legal_move(moves, from_position, to_position, flags);
+			for (const auto from_square : this->rooks(Piece::WHITE)) {
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(this->get_piece_at(from_square).type() == Piece::ROOK);
+				auto move_bb = this->rook_attacks(BitBoard(from_square), ~this->pieces()) & ~this->pieces(Piece::WHITE);
+				for (const auto to_square : move_bb) {
+					assert(!this->is_piece_at(to_square) || this->get_piece_at(to_square).colour() == Piece::BLACK);
+					auto flags = this->piece_mailbox.is_piece_at(to_square) ? Move::CAPTURE : Move::QUIET;
+					this->add_pseudo_legal_move(moves, from_square, to_square, flags);
 				}
 			}
 		}
 		void get_queen_moves(std::vector<Move>& moves) const {
-			for (const auto from_position : this->queens(Piece::WHITE)) {
-				assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-				assert(this->get_piece_at(from_position).type() == Piece::QUEEN);
-				auto move_bb = this->queen_attacks(BitBoard(from_position), ~this->pieces()) & ~this->pieces(Piece::WHITE);
-				for (const auto to_position : move_bb) {
-					assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::BLACK);
-					auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
-					this->add_pseudo_legal_move(moves, from_position, to_position, flags);
+			for (const auto from_square : this->queens(Piece::WHITE)) {
+				assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+				assert(this->get_piece_at(from_square).type() == Piece::QUEEN);
+				auto move_bb = this->queen_attacks(BitBoard(from_square), ~this->pieces()) & ~this->pieces(Piece::WHITE);
+				for (const auto to_square : move_bb) {
+					assert(!this->is_piece_at(to_square) || this->get_piece_at(to_square).colour() == Piece::BLACK);
+					auto flags = this->piece_mailbox.is_piece_at(to_square) ? Move::CAPTURE : Move::QUIET;
+					this->add_pseudo_legal_move(moves, from_square, to_square, flags);
 				}
 			}
 		}
@@ -478,25 +478,25 @@ namespace chess {
 				| this->pawns(Piece::BLACK).shift_SE() | this->pawns(Piece::BLACK).shift_SW();
 
 			auto move_bb = this->king_attacks(this->kings(Piece::WHITE)) & ~this->pieces(Piece::WHITE) & ~attacks;
-			auto from_position = *this->kings(Piece::WHITE).begin();
-			assert(this->get_piece_at(from_position).colour() == Piece::WHITE);
-			assert(this->get_piece_at(from_position).type() == Piece::KING);
+			auto from_square = *this->kings(Piece::WHITE).begin();
+			assert(this->get_piece_at(from_square).colour() == Piece::WHITE);
+			assert(this->get_piece_at(from_square).type() == Piece::KING);
 			
-			for (const auto to_position : move_bb) {
-				assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::BLACK);
-				auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
-				this->add_pseudo_legal_move(moves, from_position, to_position, flags);
+			for (const auto to_square : move_bb) {
+				assert(!this->is_piece_at(to_square) || this->get_piece_at(to_square).colour() == Piece::BLACK);
+				auto flags = this->piece_mailbox.is_piece_at(to_square) ? Move::CAPTURE : Move::QUIET;
+				this->add_pseudo_legal_move(moves, from_square, to_square, flags);
 			}
 
 			if (this->can_white_king_castle && (attacks & (BB::E1 | BB::F1 | BB::G1)).empty() && (this->pieces() & (BB::F1 | BB::G1)).empty()) {
-				this->add_pseudo_legal_move(moves, PI::E1, PI::G1, Move::K_CASTLE);
+				this->add_pseudo_legal_move(moves, S::E1, S::G1, Move::K_CASTLE);
 			}
 			if (this->can_white_queen_castle && (attacks & (BB::E1 | BB::D1 | BB::C1)).empty() && (this->pieces() & (BB::D1 | BB::C1 | BB::B1)).empty()) {
-				this->add_pseudo_legal_move(moves, PI::E1, PI::C1, Move::Q_CASTLE);
+				this->add_pseudo_legal_move(moves, S::E1, S::C1, Move::Q_CASTLE);
 			}
 		}
 
-		void add_pseudo_legal_pawn_move(std::vector<Move>& moves, PositionIndex from, PositionIndex to, unsigned int flags) const {
+		void add_pseudo_legal_pawn_move(std::vector<Move>& moves, Square from, Square to, unsigned int flags) const {
 			const auto move = Move(from, to, flags);
 			if (!this->move_in_check(move)) {
 				if (to.rank() == Rank::R8) {
@@ -510,7 +510,7 @@ namespace chess {
 				}
 			}
 		}
-		void add_pseudo_legal_move(std::vector<Move>& moves, PositionIndex from, PositionIndex to, unsigned int flags) const {
+		void add_pseudo_legal_move(std::vector<Move>& moves, Square from, Square to, unsigned int flags) const {
 			const auto move = Move(from, to, flags);
 			if (!this->move_in_check(move)) {
 				moves.emplace_back(move);

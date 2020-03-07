@@ -14,17 +14,17 @@ namespace chess {
 	*/
 	class Mailbox {
 	public:
-		inline bool is_piece_at(Square position) const {
-			return this->piece_mailbox[position.get()].type() != Piece::NO_TYPE;
+		inline bool is_piece_at(Square square) const {
+			return this->piece_mailbox[square.get()].type() != Piece::NO_TYPE;
 		}
-		inline Piece get(Square position) const {
-			return this->piece_mailbox[position.get()];
+		inline Piece get(Square square) const {
+			return this->piece_mailbox[square.get()];
 		}
-		inline void set(Square position, Piece piece) {
-			this->piece_mailbox[position.get()] = piece;
+		inline void set(Square square, Piece piece) {
+			this->piece_mailbox[square.get()] = piece;
 		}
-		inline void clear(Square position) {
-			this->piece_mailbox[position.get()].clear();
+		inline void clear(Square square) {
+			this->piece_mailbox[square.get()].clear();
 		}
 		inline void clear() {
 			for (auto& p : this->piece_mailbox)
