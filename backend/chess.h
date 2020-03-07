@@ -418,7 +418,6 @@ namespace chess {
 					this->add_pseudo_legal_pawn_move(moves, from_square, to_square, Move::EN_CAPTURE);
 				}
 			}
-
 		}
 		void get_knight_moves(std::vector<Move>& moves) const {
 			for (const auto from_square : this->knights(Piece::WHITE)) {
