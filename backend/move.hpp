@@ -11,21 +11,21 @@ namespace chess {
 
 	class Move {
 	public:
-		static const unsigned int QUIET = 0b0000;
-		static const unsigned int D_P_PUSH = 0b0001;
-		static const unsigned int K_CASTLE = 0b0010;
-		static const unsigned int Q_CASTLE = 0b0011;
-		static const unsigned int CAPTURE = 0b0100;
-		static const unsigned int EN_CAPTURE = 0b0101;
-		static const unsigned int PROMOTION = 0b1000;
-		static const unsigned int N_PROMOTION = 0b1000;
-		static const unsigned int B_PROMOTION = 0b1001;
-		static const unsigned int R_PROMOTION = 0b1010;
-		static const unsigned int Q_PROMOTION = 0b1011;
-		static const unsigned int N_PROMO_CAPTURE = CAPTURE | N_PROMOTION;
-		static const unsigned int B_PROMO_CAPTURE = CAPTURE | B_PROMOTION;
-		static const unsigned int R_PROMO_CAPTURE = CAPTURE | R_PROMOTION;
-		static const unsigned int Q_PROMO_CAPTURE = CAPTURE | Q_PROMOTION;
+		static constexpr unsigned int QUIET = 0b0000;
+		static constexpr unsigned int D_P_PUSH = 0b0001;
+		static constexpr unsigned int K_CASTLE = 0b0010;
+		static constexpr unsigned int Q_CASTLE = 0b0011;
+		static constexpr unsigned int CAPTURE = 0b0100;
+		static constexpr unsigned int EN_CAPTURE = 0b0101;
+		static constexpr unsigned int PROMOTION = 0b1000;
+		static constexpr unsigned int N_PROMOTION = 0b1000;
+		static constexpr unsigned int B_PROMOTION = 0b1001;
+		static constexpr unsigned int R_PROMOTION = 0b1010;
+		static constexpr unsigned int Q_PROMOTION = 0b1011;
+		static constexpr unsigned int N_PROMO_CAPTURE = CAPTURE | N_PROMOTION;
+		static constexpr unsigned int B_PROMO_CAPTURE = CAPTURE | B_PROMOTION;
+		static constexpr unsigned int R_PROMO_CAPTURE = CAPTURE | R_PROMOTION;
+		static constexpr unsigned int Q_PROMO_CAPTURE = CAPTURE | Q_PROMOTION;
 
 		constexpr Move(Square f, Square t, unsigned int flags = QUIET, Piece::Type p = Piece::NO_TYPE) {
 			assert(p != Piece::PAWN && p != Piece::KING);

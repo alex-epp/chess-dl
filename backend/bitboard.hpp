@@ -63,6 +63,9 @@ namespace chess {
 		[[nodiscard]] constexpr bool is_piece_at(Square square) const {
 			return !(*this & square).empty();
 		}
+        [[nodiscard]] constexpr bool contains(Square square) const {
+            return this->is_piece_at(square);
+        }
         [[nodiscard]] constexpr bool empty() const {
 			return this->bb == UINT64_C(0);
 		}
@@ -75,44 +78,44 @@ namespace chess {
         [[nodiscard]] auto end() const { return BitBoardBitScanIterator::END; }
 
 	public: // Operations we can perform on bitboards
-		constexpr BitBoard shift_N() const {
+		[[nodiscard]] constexpr BitBoard shift_N() const {
 			return *this << 8;
 		}
-		constexpr BitBoard shift_N(const int amount) const {
+		[[nodiscard]] constexpr BitBoard shift_N(const int amount) const {
 			return *this << (8 * amount);
 		}
-		constexpr BitBoard shift_S() const {
+		[[nodiscard]] constexpr BitBoard shift_S() const {
 			return *this >> 8;
 		}
-		constexpr BitBoard shift_S(const int amount) const {
+		[[nodiscard]] constexpr BitBoard shift_S(const int amount) const {
 			return *this >> (8 * amount);
 		}
-		constexpr BitBoard shift_W() const {
+		[[nodiscard]] constexpr BitBoard shift_W() const {
 			return (*this >> 1) & ~BitBoard(File::H);
 		}
-		constexpr BitBoard shift_W(const int amount) const {
+		[[nodiscard]] constexpr BitBoard shift_W(const int amount) const {
 			return (*this >> amount) & ~BitBoard::from_west_files(amount);
 		}
-		constexpr BitBoard shift_E() const {
+		[[nodiscard]] constexpr BitBoard shift_E() const {
 			return (*this << 1) & ~BitBoard(File::A);
 		}
-		constexpr BitBoard shift_E(const int amount) const {
+		[[nodiscard]] constexpr BitBoard shift_E(const int amount) const {
 			return (*this << amount) & ~BitBoard::from_east_files(amount);
 		}
-		constexpr BitBoard shift_NW() const {
+		[[nodiscard]] constexpr BitBoard shift_NW() const {
 			return (*this << 7) & ~BitBoard(File::H);
 		}
-		constexpr BitBoard shift_NE() const {
+		[[nodiscard]] constexpr BitBoard shift_NE() const {
 			return (*this << 9) & ~BitBoard(File::A);
 		}
-		constexpr BitBoard shift_SW() const {
+		[[nodiscard]] constexpr BitBoard shift_SW() const {
 			return (*this >> 9) & ~BitBoard(File::H);
 		}
-		constexpr BitBoard shift_SE() const {
+		[[nodiscard]] constexpr BitBoard shift_SE() const {
 			return (*this >> 7) & ~BitBoard(File::A);
 		}
 
-		constexpr BitBoard flip_vertical() const {
+		[[nodiscard]] constexpr BitBoard flip_vertical() const {
 #ifdef _WIN32
 			return _byteswap_uint64(this->bb);
 #else
@@ -120,7 +123,7 @@ namespace chess {
 #endif
 		}
 
-		constexpr size_t pop_count() const {
+		[[nodiscard]] constexpr size_t pop_count() const {
 #ifdef _WIN32
 #error("pop_count() not implemented for windows yet.")
 #else
@@ -128,7 +131,7 @@ namespace chess {
 #endif
 	    }
 
-		constexpr BitBoard fill_N_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_N_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			gen |= empty & (gen << 8);
 			empty &= (empty << 8);
@@ -137,7 +140,7 @@ namespace chess {
 			gen |= empty & (gen << 32);
 			return gen;
 		}
-		constexpr BitBoard fill_S_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_S_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			gen |= empty & (gen >> 8);
 			empty &= (empty >> 8);
@@ -146,7 +149,7 @@ namespace chess {
 			gen |= empty & (gen >> 32);
 			return gen;
 		}
-		constexpr BitBoard fill_E_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_E_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			empty &= ~BitBoard(File::A);
 			gen |= empty & (gen << 1);
@@ -156,7 +159,7 @@ namespace chess {
 			gen |= empty & (gen << 4);
 			return gen;
 		}
-		constexpr BitBoard fill_W_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_W_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			empty &= ~BitBoard(File::H);
 			gen |= empty & (gen >> 1);
@@ -166,7 +169,7 @@ namespace chess {
 			gen |= empty & (gen >> 4);
 			return gen;
 		}
-		constexpr BitBoard fill_NE_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_NE_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			empty &= ~BitBoard(File::A);
 			gen |= empty & (gen << 9);
@@ -176,7 +179,7 @@ namespace chess {
 			gen |= empty & (gen << 36);
 			return gen;
 		}
-		constexpr BitBoard fill_SE_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_SE_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			empty &= ~BitBoard(File::A);
 			gen |= empty & (gen >> 7);
@@ -186,7 +189,7 @@ namespace chess {
 			gen |= empty & (gen >> 28);
 			return gen;
 		}
-		constexpr BitBoard fill_NW_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_NW_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			empty &= ~BitBoard(File::H);
 			gen |= empty & (gen << 7);
@@ -196,7 +199,7 @@ namespace chess {
 			gen |= empty & (gen << 28);
 			return gen;
 		}
-		constexpr BitBoard fill_SW_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard fill_SW_occluded(BitBoard empty) const {
 			BitBoard gen = *this;
 			empty &= ~BitBoard(File::H);
 			gen |= empty & (gen >> 9);
@@ -207,28 +210,28 @@ namespace chess {
 			return gen;
 		}
 
-		constexpr BitBoard attack_N_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_N_occluded(BitBoard empty) const {
 			return fill_N_occluded(empty).shift_N();
 		}
-		constexpr BitBoard attack_S_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_S_occluded(BitBoard empty) const {
 			return fill_S_occluded(empty).shift_S();
 		}
-		constexpr BitBoard attack_E_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_E_occluded(BitBoard empty) const {
 			return fill_E_occluded(empty).shift_E();
 		}
-		constexpr BitBoard attack_W_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_W_occluded(BitBoard empty) const {
 			return fill_W_occluded(empty).shift_W();
 		}
-		constexpr BitBoard attack_NE_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_NE_occluded(BitBoard empty) const {
 			return fill_NE_occluded(empty).shift_NE();
 		}
-		constexpr BitBoard attack_SE_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_SE_occluded(BitBoard empty) const {
 			return fill_SE_occluded(empty).shift_SE();
 		}
-		constexpr BitBoard attack_NW_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_NW_occluded(BitBoard empty) const {
 			return fill_NW_occluded(empty).shift_NW();
 		}
-		constexpr BitBoard attack_SW_occluded(BitBoard empty) const {
+		[[nodiscard]] constexpr BitBoard attack_SW_occluded(BitBoard empty) const {
 			return fill_SW_occluded(empty).shift_SW();
 		}
 

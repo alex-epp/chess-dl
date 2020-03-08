@@ -1,7 +1,5 @@
 #include "catch.hpp"
-
 #include <cstdint>
-#include <sstream>
 
 #include "../mailbox.hpp"
 
