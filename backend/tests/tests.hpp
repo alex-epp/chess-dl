@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../bitboard.hpp"
-
+#include "catch.hpp"
 #include <sstream>
 #include <string>
+
+#include "../bitboard.hpp"
 
 namespace Catch {
     template<>

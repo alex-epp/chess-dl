@@ -1,8 +1,6 @@
 #include "catch.hpp"
-
 #include <cstdint>
 #include <limits>
-#include <climits>
 
 #include "../bitscan.hpp"
 

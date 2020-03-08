@@ -31,7 +31,7 @@ int main()
 
 	auto start_time = std::chrono::system_clock::now();
 	for (auto i = 0; i < 1'000'000; ++i) {
-		b.get_moves(moves);
+		b.legal_moves(moves);
 		if (moves.empty()) break;
 		auto move = moves[rand() % moves.size()];
 		b.push_move(move);

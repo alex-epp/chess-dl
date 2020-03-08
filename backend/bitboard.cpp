@@ -1,17 +1,17 @@
 #include "bitboard.hpp"
-#include "position_index.hpp"
+#include "square.hpp"
 
 
 namespace chess {
-	BitBoardBitScanIterator::BitBoardBitScanIterator(const BitBoard* bb) : bb(bb), position(bitscan::first(bb->bb)) {}
+	BitBoardBitScanIterator::BitBoardBitScanIterator(const BitBoard* bb) : bb(bb), square(bitscan::first(bb->bb)) {}
 	BitBoardBitScanIterator& BitBoardBitScanIterator::operator ++ () {
-		this->position = bitscan::next(this->position.position_index, this->bb->bb);
+		this->square = bitscan::next(this->square.get(), this->bb->bb);
 		return *this;
 	}
-	bool BitBoardBitScanIterator::operator != (const unsigned int rhs) const {
-		return this->position.position_index != rhs;
+	bool BitBoardBitScanIterator::operator != (unsigned int rhs) const {
+		return this->square.get() != rhs;
 	}
-	PositionIndex BitBoardBitScanIterator::operator * () const {
-		return this->position;
+	Square BitBoardBitScanIterator::operator * () const {
+		return this->square;
 	}
 }

@@ -1,9 +1,7 @@
-#include "catch.hpp"
-
-#include <cstdint>
-#include <sstream>
-
 #include "tests.hpp"
+#include "catch.hpp"
+#include <cstdint>
+
 #include "../bitboard.hpp"
 
 using namespace chess;

@@ -30,7 +30,7 @@ namespace chess {
 		assert(turn_fen == "w" || turn_fen == "b");
 		auto turn = (turn_fen == "w") ? Piece::WHITE : Piece::BLACK;
 		auto castle_rights = castle_rights_fen;  // TODO: decide on a castle-rights format
-		auto en_passant_target = PositionIndex(en_passant_fen);
+		auto en_passant_target = Square(en_passant_fen);
 		unsigned int half_move, full_move;
 		auto half_move_parse_result = std::from_chars(half_move_fen.data(), half_move_fen.data() + half_move_fen.length(), half_move);
 		auto full_move_parse_result = std::from_chars(full_move_fen.data(), full_move_fen.data() + full_move_fen.length(), full_move);
@@ -50,7 +50,7 @@ namespace chess {
 			}
 			else {
 				assert(0 <= file && file < 8 && 0 <= rank && rank < 8);
-				board.put_piece(Piece(c), PositionIndex(static_cast<File>(file), static_cast<Rank>(rank)));
+				board.put_piece(Piece(c), Square(static_cast<File>(file), static_cast<Rank>(rank)));
 				++file;
 			}
 		}
