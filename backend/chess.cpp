@@ -7,6 +7,17 @@
 
 
 namespace chess {
+    std::string san_flipped(std::string san) {
+        for (size_t i = 0; i < san.length(); ++i) {
+            if (isdigit(san[i])) {
+                int d = san[i] - '0';
+                d = 9 - d; // Convert from [1, 8] to [8, 1]
+                san[i] = '0' + d;
+            }
+        }
+        return san;
+    }
+
 	std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
 		for (int ri = 7; ri >= 0; --ri) {
 			for (int fi = 0; fi < 8; ++fi) {
@@ -33,6 +44,80 @@ namespace chess {
         return this->parse_move(from, to, promo_type);
     }
     /**
+     * Based on Python-chess's parse_san in __init__.py.
+     *
+     * How this handles turns is a little unintuitive, and I really need to fix it. Essentially, the Board always plays
+     * from white's position. However, SAN can be given from white's or black's perspective. If you have SAN from black's
+     * perspective you therefore need to set turn to Black.
+     */
+    Move Board::parse_san(std::string san, Piece::Colour turn) const {
+        if (turn == Piece::BLACK)
+            san = san_flipped(san);
+
+        // Castling
+        if (san == "O-O" || san == "O-O+" || san == "O-O#") {
+            assert(this->can_white_king_castle);
+            return this->parse_move(S::E1, S::G1);
+        } else if (san == "O-O-O" || san == "O-O-O+" || san == "O-O-O#") {
+            assert(this->can_white_queen_castle);
+            return this->parse_move(S::E1, S::C1);
+        }
+
+        const static std::regex SAN_REGEX(R"(^([NBKRQ])?([a-h])?([1-8])?[\-x]?([a-h][1-8])=?([nbrqkNBRQK])?(\+|#)?$)");
+        const static std::regex FEN_CASTLING_REGEX(R"(^(?:-|[KQABCDEFGH]{0,2}[kqabcdefgh]{0,2})\Z)");
+
+        // Match normal moves
+        std::smatch match;
+        auto matched = std::regex_match(san, match, SAN_REGEX);
+        assert(matched);
+
+        // Get target square
+        Square to_square(match[4].str());
+
+        // Get the promotion type
+        auto p = match[5].str();
+        auto promotion = p.empty() ? Piece::NO_TYPE : Piece(std::toupper(p[0])).type();
+
+        // Filter by piece type
+        BitBoard from_mask;
+        if (!match[1].str().empty()) {
+            auto piece_type = Piece(match[1].str()[0]).type();
+            from_mask = this->pieces(piece_type, Piece::WHITE);
+        } else {
+            from_mask = this->pawns(Piece::WHITE);
+        }
+
+        // Filter by source file
+        if (!match[2].str().empty()) {
+            auto f = match[2].str()[0] - 'a';
+            assert(0 <= f && f <= 7);
+            from_mask &= static_cast<File>(f);
+        }
+
+        // Filter by source rank
+        if (!match[3].str().empty()) {
+            auto r = match[3].str()[0] - '1';
+            assert(0 <= r && r <= 7);
+            from_mask &= static_cast<Rank>(r);
+        }
+
+        // Match legal moves
+        Move matched_move(Square::EMPTY, Square::EMPTY);
+        for (const auto& move : this->legal_moves(from_mask, to_square)) {
+            if (move.is_promotion()) {
+                if (promotion != move.promoted_type()) continue;
+            } else {
+                if (promotion != Piece::NO_TYPE) continue;
+            }
+
+            assert(matched_move.from().get() != Square::EMPTY);
+
+            matched_move = move;
+        }
+        assert(matched_move.from().get() != Square::EMPTY);
+
+        return matched_move;
+    }
     Move Board::parse_move(Square from, Square to, Piece::Type promo_type) const {
         auto piece = this->piece_mailbox.get(from);
         auto flags = Move::QUIET;

@@ -161,6 +161,7 @@ namespace chess {
 		Board(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move);
 
         [[nodiscard]] Move parse_uci(const std::string& uci) const;
+        [[nodiscard]] Move parse_san(std::string san, Piece::Colour turn = Piece::WHITE) const;
         [[nodiscard]] Move parse_move(Square from, Square to, Piece::Type promo_type = Piece::NO_TYPE) const;
 
 		void push_uci(const std::string& uci);
