@@ -19,8 +19,12 @@ std::string pgn_line_minify(const std::string& line) {
         else if (c == '?' || c == '!' || c == '+' || c == '#') continue;
         else if (c == ';') break;
         else {
-            if (minified.size() > 3 && minified.substr(minified.size() - 3) == "...")
+            if (minified.size() > 3 && minified.substr(minified.size() - 3) == "...") {
+                // Here we have " [number] ..."
                 minified.erase(minified.size() - 3);
+                minified.erase(minified.find_last_not_of(" \t") + 1);
+                minified.erase(minified.find_last_of(" \t") + 1);
+            }
 
             minified += c;
         }
@@ -51,6 +55,7 @@ int main(int argc, const char** argv) {
     std::ios_base::sync_with_stdio(false);
 
     pgn_minify(std::cin, std::cout);
+    std::cout.flush();
 
     return EXIT_SUCCESS;
 }
