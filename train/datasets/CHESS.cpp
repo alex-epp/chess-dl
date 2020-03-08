@@ -5,28 +5,33 @@
 #include "CHESS.hpp"
 #include "../../backend/fen.hpp"
 
-#include <utility>
+#include <algorithm>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <random>
+#include <utility>
 
 using namespace chess;
 using namespace chess::datasets;
 namespace fs = std::filesystem;
 
-const std::array<fs::path, 3> CHESS::game_files_by_mode = {
+const std::array<fs::path, 4> CHESS::game_files_by_mode = {
     fs::path(__FILE__).parent_path() / "meta/train.txt",
     fs::path(__FILE__).parent_path() / "meta/valid.txt",
     fs::path(__FILE__).parent_path() / "meta/test.txt",
+    fs::path(__FILE__).parent_path() / "meta/debug.txt",
 };
 
 CHESS::CHESS(const fs::path& root, Mode mode)
-        : CHESS(std::vector{root}, mode) {}
+        : CHESS(std::vector{root}, mode)
+{}
 
 CHESS::CHESS(const std::vector<fs::path>& roots, Mode mode)
         : cur_file_idx(0), game_files(CHESS::get_game_files(roots, mode)), mode(mode),
           file_line_streamer(game_files[cur_file_idx]),
           shuffled_position_move_streamer(file_line_streamer.next_line().value())
-        {}
+{}
 
 
 std::vector<fs::path> CHESS::get_game_files(const std::vector<fs::path>& roots, CHESS::Mode mode) {
@@ -43,12 +48,13 @@ std::vector<fs::path> CHESS::get_game_files(const std::vector<fs::path>& roots, 
 
 fs::path CHESS::find_path_by_name(const std::string& name, const std::vector<fs::path>& roots) {
     for (const auto& root : roots) {
-        if (fs::exists(root / name)) return name;
+        if (fs::exists(root / name)) return root / name;
     }
-    assert(false && name);
+    assert(false && "Cannot find path by name");
+    return fs::path();
 }
 
-std::vector<CHESS::Example> CHESS::get_batch(size_t batch_size) {
+CHESS::BatchType CHESS::get_batch(size_t batch_size) {
     std::vector<torch::data::Example<>> batch;
     batch.reserve(batch_size);
     for (size_t i = 0; i < batch_size; ++i) {
@@ -61,7 +67,7 @@ torch::optional<size_t> CHESS::size() const {
     return torch::nullopt;
 }
 
-CHESS::Example CHESS::get_next_example() {
+CHESS::ExampleType CHESS::get_next_example() {
     auto next_position_move = this->shuffled_position_move_streamer.next_position_move();
 
     while (!next_position_move.has_value()) {
@@ -89,11 +95,11 @@ CHESS::Example CHESS::get_next_example() {
  *
  * A move is represented by two 64-bit one-hot vectors, from and to.
  */
-CHESS::Example CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
+CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
     assert(position.is_piece_at(move.from()));
     assert(position.get_piece_at(move.from()).colour() == Piece::WHITE);
 
-    auto position_encoded = torch::stack(
+    auto position_encoded = torch::cat(
             {
                 CHESS::BB_to_tensor(position.pawns(Piece::WHITE)),
                 CHESS::BB_to_tensor(position.bishops(Piece::WHITE)),
@@ -116,7 +122,7 @@ CHESS::Example CHESS::position_move_to_example(const chess::Board& position, con
                     position.white_queen_castling_rights(),
                     position.black_king_castling_rights(),
                     position.black_queen_castling_rights()
-                })
+                }, torch::dtype(torch::kFloat32))
             });
 
     auto move_encoded = torch::stack(
@@ -125,7 +131,7 @@ CHESS::Example CHESS::position_move_to_example(const chess::Board& position, con
                CHESS::BB_to_tensor(move.to())
             });
 
-    return CHESS::Example(position_encoded, move_encoded);
+    return CHESS::ExampleType(position_encoded, move_encoded);
 }
 
 torch::Tensor CHESS::BB_to_tensor(const BitBoard& bb) {
@@ -134,6 +140,10 @@ torch::Tensor CHESS::BB_to_tensor(const BitBoard& bb) {
         bb_tensor[p.get()] = 1;
     }
     return bb_tensor;
+}
+
+void CHESS::reset() {
+    // TODO: implement reset()
 }
 
 FileLineStreamer::FileLineStreamer(const fs::path& filename) : file(filename) {
@@ -155,27 +165,40 @@ torch::optional<std::string> FileLineStreamer::next_line() {
  *
  * Note that each position and move is returned as if white played it (i.e. flipped if it
  * was actually black's turn).
+ *
+ * TODO: I'm not sure what this function does with edge cases. Need to test it.
  */
-std::vector<std::pair<Board, Move>> read_pgn(const std::string& pgn) {
+std::vector<std::pair<Board, Move>> datasets::read_pgn(const std::string& pgn) {
     std::vector<std::pair<Board, Move>> v;
     std::istringstream iss(pgn);
     std::string counter_or_end, move_san;
     auto board = load_FEN<chess::Board>(STARTING_FEN);
+    auto turn = Piece::WHITE;
     for(size_t i = 0; !iss.eof(); ++i) {
         if (i % 3 == 0) {
             iss >> counter_or_end;
-            continue;
         } else {
             iss >> move_san;
-            auto move = read_san(move_san, board);
-            v.push_back(std::make_pair(board, move));
+            if (move_san == "1-0" || move_san == "0-1" || move_san == "1/2-1/2")
+                continue;
+
+            auto move = board.parse_san(move_san, turn);
+            v.emplace_back(board, move);
             board.push_move(move);
             board.flip();
+            turn = Piece::enemy_colour(turn);
         }
     }
     return v;
 }
 
-Move read_san(const std::string& san, const Board& board) {
+ShuffledPositionMoveStreamer::ShuffledPositionMoveStreamer(const std::string& game_pgn)
+            : i(0), game(read_pgn(game_pgn)) {
+    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle(this->game.begin(), this->game.end(), std::default_random_engine(seed));
+}
 
+torch::optional<std::pair<Board, Move>> ShuffledPositionMoveStreamer::next_position_move() {
+    if (this->i == this->game.size()) return torch::nullopt;
+    else return this->game[this->i++];
 }
