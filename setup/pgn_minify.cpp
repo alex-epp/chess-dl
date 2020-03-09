@@ -55,7 +55,6 @@ int main(int argc, const char** argv) {
     std::ios_base::sync_with_stdio(false);
 
     pgn_minify(std::cin, std::cout);
-    std::cout.flush();
 
     return EXIT_SUCCESS;
 }
