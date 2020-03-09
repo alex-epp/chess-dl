@@ -179,7 +179,7 @@ std::vector<std::pair<Board, Move>> datasets::read_pgn(const std::string& pgn) {
             iss >> counter_or_end;
         } else {
             iss >> move_san;
-            if (move_san == "1-0" || move_san == "0-1" || move_san == "1/2-1/2")
+            if (move_san == "1-0" || move_san == "0-1" || move_san == "1/2-1/2" || move_san == "*")
                 continue;
 
             auto move = board.parse_san(move_san, turn);
