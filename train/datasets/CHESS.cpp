@@ -36,22 +36,27 @@ CHESS::CHESS(const std::vector<fs::path>& roots, Mode mode)
 
 std::vector<fs::path> CHESS::get_game_files(const std::vector<fs::path>& roots, CHESS::Mode mode) {
     std::ifstream in(CHESS::game_files_by_mode[static_cast<size_t>(mode)]);
-    assert(!in.fail());
+    if (in.fail())
+        throw CHESS::Exception("Failed to open file: " +
+                               CHESS::game_files_by_mode[static_cast<size_t>(mode)].string());
 
     std::vector<fs::path> game_files;
     std::string name;
     while (in >> name) {
-        game_files.push_back(CHESS::find_path_by_name(name, roots));
+        auto path = CHESS::find_path_by_name(name, roots);
+        if (path)
+            game_files.push_back(*path);
+        else
+            throw CHESS::Exception("Failed to find file: " + name);
     }
     return game_files;
 }
 
-fs::path CHESS::find_path_by_name(const std::string& name, const std::vector<fs::path>& roots) {
+std::optional<fs::path> CHESS::find_path_by_name(const std::string& name, const std::vector<fs::path>& roots) {
     for (const auto& root : roots) {
         if (fs::exists(root / name)) return root / name;
     }
-    assert(false && "Cannot find path by name");
-    return fs::path();
+    return std::nullopt;
 }
 
 CHESS::BatchType CHESS::get_batch(size_t batch_size) {
@@ -94,6 +99,8 @@ CHESS::ExampleType CHESS::get_next_example() {
  * is white's turn.
  *
  * A move is represented by two 64-bit one-hot vectors, from and to.
+ *
+ * Overall, x's have size [836] and y's have size [2, 64]
  */
 CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
     assert(position.is_piece_at(move.from()));
