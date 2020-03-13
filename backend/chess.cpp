@@ -8,29 +8,200 @@
 
 namespace chess {
     std::string san_flipped(std::string san) {
-        for (size_t i = 0; i < san.length(); ++i) {
-            if (isdigit(san[i])) {
-                int d = san[i] - '0';
+        for (char& ch : san) {
+            if (isdigit(ch)) {
+                int d = ch - '0';
                 d = 9 - d; // Convert from [1, 8] to [8, 1]
-                san[i] = '0' + d;
+                ch = '0' + d;
             }
         }
         return san;
     }
 
-	std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
-		for (int ri = 7; ri >= 0; --ri) {
-			for (int fi = 0; fi < 8; ++fi) {
-				auto r = static_cast<Rank>(ri);
-				auto f = static_cast<File>(fi);
-				auto piece = board.get_piece_at(Square(f, r));
+    BaseBoard::BaseBoard(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
+                : en_passant_target(en_passant_target), halfmove_clock(half_move), fullmove_clock(full_move), turn(turn)
+    {
+        this->can_white_king_castle = castle_rights.find_first_of('K') != std::string::npos;
+        this->can_white_queen_castle = castle_rights.find_first_of('Q') != std::string::npos;
+        this->can_black_king_castle = castle_rights.find_first_of('k') != std::string::npos;
+        this->can_black_queen_castle = castle_rights.find_first_of('q') != std::string::npos;
+    }
 
-				stream << piece_repr(piece);
-			}
-			stream << '\n';
-		}
-		return stream;
-	}
+    void BaseBoard::clear() {
+        for (int i = 0; i < 8; ++i)
+            this->piece_BB[i] = 0;
+        this->piece_mailbox.clear();
+        this->en_passant_target = Square();
+
+        for(int i = 0; i < 8; ++i)
+            assert(this->piece_BB[i].empty());
+        for(int i = 0; i < 64; ++i)
+            assert(this->piece_mailbox.get(i).type() == Piece::NO_TYPE);
+        assert(this->en_passant_target == Square::EMPTY);
+    }
+
+    auto BaseBoard::pieces() const {
+        return this->piece_BB[Piece::WHITE] | this->piece_BB[Piece::BLACK];
+    }
+    auto BaseBoard::pieces(Piece::Colour c) const {
+        return this->piece_BB[c];
+    }
+    auto BaseBoard::pieces(Piece::Type p) const {
+        return this->piece_BB[p];
+    }
+    auto BaseBoard::pieces(Piece::Type p, Piece::Colour c) const {
+        return this->piece_BB[p] & this->piece_BB[c];
+    }
+    auto BaseBoard::pawns() const {
+        return this->pieces(Piece::PAWN);
+    }
+    auto BaseBoard::pawns(Piece::Colour c) const {
+        return this->pieces(Piece::PAWN, c);
+    }
+    auto BaseBoard::knights() const {
+        return this->pieces(Piece::KNIGHT);
+    }
+    auto BaseBoard::knights(Piece::Colour c) const {
+        return this->pieces(Piece::KNIGHT, c);
+    }
+    auto BaseBoard::bishops() const {
+        return this->pieces(Piece::BISHOP);
+    }
+    auto BaseBoard::bishops(Piece::Colour c) const {
+        return this->pieces(Piece::BISHOP, c);
+    }
+    auto BaseBoard::rooks() const {
+        return this->pieces(Piece::ROOK);
+    }
+    auto BaseBoard::rooks(Piece::Colour c) const {
+        return this->pieces(Piece::ROOK, c);
+    }
+    auto BaseBoard::queens() const {
+        return this->pieces(Piece::QUEEN);
+    }
+    auto BaseBoard::queens(Piece::Colour c) const {
+        return this->pieces(Piece::QUEEN, c);
+    }
+    auto BaseBoard::kings() const {
+        return this->pieces(Piece::KING);
+    }
+    auto BaseBoard::kings(Piece::Colour c) const {
+        return this->pieces(Piece::KING, c);
+    }
+
+    auto BaseBoard::is_piece_at(Square square) const {
+        return this->piece_mailbox.is_piece_at(square);
+    }
+    auto BaseBoard::get_piece_at(Square square) const {
+        return this->piece_mailbox.get(square);
+    }
+
+    auto BaseBoard::en_target() const {
+        return this->en_passant_target;
+    }
+
+    auto BaseBoard::white_king_castling_rights() const {
+        return this->can_white_king_castle;
+    }
+    auto BaseBoard::white_queen_castling_rights() const {
+        return this->can_white_queen_castle;
+    }
+    auto BaseBoard::black_king_castling_rights() const {
+        return this->can_black_king_castle;
+    }
+    auto BaseBoard::black_queen_castling_rights() const {
+        return this->can_black_queen_castle;
+    }
+
+    void BaseBoard::put_piece(Piece piece, Square square) {
+        this->remove_piece(square);
+        this->piece_BB[piece.type()] |= square;
+        this->piece_BB[piece.colour()] |= square;
+        this->piece_mailbox.set(square, piece);
+    }
+    void BaseBoard::remove_piece(Square square) {
+        for (int i = 0; i < 8; ++i)
+            this->piece_BB[i] &= ~BitBoard(square);
+        this->piece_mailbox.clear(square);
+
+        for (int i = 0; i < 8; ++i)
+            assert(!this->piece_BB[i].is_piece_at(square));
+        assert(!this->piece_mailbox.is_piece_at(square));
+    }
+
+    std::string BaseBoard::fen() const {
+        if ()
+
+        std::string fen;
+        for (int r = 7; r >= 0; --r) {
+            int space = 0;
+            for (int f = 0; f < 8; ++f) {
+                auto square = Square(static_cast<File>(f), static_cast<Rank>(r));
+                if (this->is_piece_at(square)) {
+                    if (space > 0) {
+                        fen += char(space + '0');
+                        space = 0;
+                    }
+
+                    char c;
+                    switch (this->get_piece_at(square).type()) {
+                        case Piece::PAWN: c = 'p'; break;
+                        case Piece::KNIGHT: c = 'n'; break;
+                        case Piece::BISHOP: c = 'b'; break;
+                        case Piece::ROOK: c = 'r'; break;
+                        case Piece::QUEEN: c = 'q'; break;
+                        case Piece::KING: c = 'k'; break;
+                        default: assert(false);
+                    }
+                    if (this->get_piece_at(square).colour() == Piece::WHITE)
+                        c = ::toupper(c);
+                    fen += c;
+                } else {
+                    ++space;
+                }
+            }
+            if (space > 0) {
+                fen += char(space + '0');
+                space = 0;
+            }
+
+            if (r > 0) fen += '/';
+        }
+
+        fen += std::string(" ") + (this->turn == Piece::WHITE ? "w" : "b");
+
+        std::string castling_string;
+        if (this->can_white_king_castle) castling_string += 'K';
+        if (this->can_white_queen_castle) castling_string += 'Q';
+        if (this->can_black_king_castle) castling_string += 'k';
+        if (this->can_white_queen_castle) castling_string += 'q';
+        fen += " " + (castling_string.empty() ? "-" : castling_string);
+
+        fen += " " + (en_passant_target.is_empty() ? "-" : en_passant_target.uci());
+
+        fen += " " + std::to_string(this->halfmove_clock);
+        fen += " " + std::to_string(this->fullmove_clock);
+
+        return fen;
+    }
+
+    inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
+        return print_board(stream, board);
+    }
+
+    std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
+        for (int ri = 7; ri >= 0; --ri) {
+            for (int fi = 0; fi < 8; ++fi) {
+                auto r = static_cast<Rank>(ri);
+                auto f = static_cast<File>(fi);
+                auto piece = board.get_piece_at(Square(f, r));
+
+                stream << piece_repr(piece);
+            }
+            stream << '\n';
+        }
+        return stream;
+    }
 
     Board::Board(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
             : BaseBoard(turn, castle_rights, en_passant_target, half_move, full_move)
@@ -64,7 +235,6 @@ namespace chess {
         }
 
         const static std::regex SAN_REGEX(R"(^([NBKRQ])?([a-h])?([1-8])?[\-x]?([a-h][1-8])=?([nbrqkNBRQK])?(\+|#)?$)");
-        const static std::regex FEN_CASTLING_REGEX(R"(^(?:-|[KQABCDEFGH]{0,2}[kqabcdefgh]{0,2})\Z)");
 
         // Match normal moves
         std::smatch match;
@@ -165,6 +335,7 @@ namespace chess {
         this->push_move(this->parse_move(from, to, promo_type));
     }
     void Board::push_move(const Move& move) {
+        std::cerr << this->fen() << " " << move.from().uci() << " " << move.to().uci() << " " << this->is_piece_at(move.from()) << std::endl;
         assert(this->is_piece_at(move.from()));
         assert(this->piece_mailbox.get(move.from()).colour() == Piece::WHITE);
         if (this->is_piece_at(move.to()))
@@ -243,6 +414,16 @@ namespace chess {
             this->en_passant_target = move.to().backward(piece.colour());
         }
 
+        if (move.is_capture() || piece.type() == Piece::PAWN) {
+            this->halfmove_clock = 0;
+        } else {
+            ++this->halfmove_clock;
+        }
+
+        if (this->turn == Piece::BLACK) {
+            ++this->fullmove_clock;
+        }
+
         assert(!this->is_piece_at(move.from()));
         assert(this->is_piece_at(move.to()));
         assert(this->piece_mailbox.get(move.to()).colour() == Piece::WHITE);
@@ -304,6 +485,8 @@ namespace chess {
         this->en_passant_target = this->en_passant_target.flip_vertical();
         std::swap(this->can_white_king_castle, this->can_black_king_castle);
         std::swap(this->can_white_queen_castle, this->can_black_queen_castle);
+
+        this->turn = Piece::enemy_colour(this->turn);
 
         assert(this->en_passant_target.file() == old_en_passant_target.file());
         if (this->en_passant_target.get() != Square::EMPTY)
@@ -528,6 +711,15 @@ namespace chess {
                        | this->pawns(Piece::BLACK).shift_SE()
                        | this->pawns(Piece::BLACK).shift_SW();
         return !(this->kings(Piece::WHITE) & attacks).empty();
+    }
+    bool Board::is_black_in_check() const {
+        const auto empty = ~this->pieces();
+        auto attacks = this->bishop_attacks(this->bishops(Piece::WHITE) | this->queens(Piece::WHITE), empty)
+                       | this->rook_attacks(this->rooks(Piece::WHITE) | this->queens(Piece::WHITE), empty)
+                       | this->knight_attacks(this->knights(Piece::WHITE))
+                       | this->pawns(Piece::WHITE).shift_SE()
+                       | this->pawns(Piece::WHITE).shift_SW();
+        return !(this->kings(Piece::BLACK) & attacks).empty();
     }
 
     size_t Board::perft(size_t depth, std::vector<std::vector<Move>>& storage) {

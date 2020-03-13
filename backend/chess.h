@@ -23,120 +23,41 @@ namespace chess {
 
 	class BaseBoard {
 	public:
-		BaseBoard(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
-			: en_passant_target(en_passant_target)
-		{
-			this->can_white_king_castle = castle_rights.find_first_of('K') != std::string::npos;
-			this->can_white_queen_castle = castle_rights.find_first_of('Q') != std::string::npos;
-			this->can_black_king_castle = castle_rights.find_first_of('k') != std::string::npos;
-			this->can_black_queen_castle = castle_rights.find_first_of('q') != std::string::npos;
-		}
+		BaseBoard(Piece::Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move);
 
-		void clear() {
-			for (int i = 0; i < 8; ++i)
-				this->piece_BB[i] = 0;
-			this->piece_mailbox.clear();
-			this->en_passant_target = Square();
+		void clear();
 
-			for(int i = 0; i < 8; ++i)
-			    assert(this->piece_BB[i].empty());
-			for(int i = 0; i < 64; ++i)
-			    assert(this->piece_mailbox.get(i).type() == Piece::NO_TYPE);
-			assert(this->en_passant_target == Square::EMPTY);
-		}
+		[[nodiscard]] auto pieces() const;
+        [[nodiscard]] auto pieces(Piece::Colour c) const;
+        [[nodiscard]] auto pieces(Piece::Type p) const;
+        [[nodiscard]] auto pieces(Piece::Type p, Piece::Colour c) const;
+        [[nodiscard]] auto pawns() const;
+        [[nodiscard]] auto pawns(Piece::Colour c) const;
+        [[nodiscard]] auto knights() const;
+        [[nodiscard]] auto knights(Piece::Colour c) const;
+        [[nodiscard]] auto bishops() const;
+        [[nodiscard]] auto bishops(Piece::Colour c) const;
+        [[nodiscard]] auto rooks() const;
+        [[nodiscard]] auto rooks(Piece::Colour c) const;
+        [[nodiscard]] auto queens() const;
+        [[nodiscard]] auto queens(Piece::Colour c) const;
+        [[nodiscard]] auto kings() const;
+        [[nodiscard]] auto kings(Piece::Colour c) const;
 
-		[[nodiscard]] auto pieces() const {
-			return this->piece_BB[Piece::WHITE] | this->piece_BB[Piece::BLACK];
-		}
-        [[nodiscard]] auto pieces(Piece::Colour c) const {
-			return this->piece_BB[c];
-		}
-        [[nodiscard]] auto pieces(Piece::Type p) const {
-			return this->piece_BB[p];
-		}
-        [[nodiscard]] auto pieces(Piece::Type p, Piece::Colour c) const {
-			return this->piece_BB[p] & this->piece_BB[c];
-		}
+        [[nodiscard]] auto is_piece_at(Square square) const;
+        [[nodiscard]] auto get_piece_at(Square square) const;
 
-        [[nodiscard]] auto pawns() const {
-			return this->pieces(Piece::PAWN);
-		}
-        [[nodiscard]] auto pawns(Piece::Colour c) const {
-			return this->pieces(Piece::PAWN, c);
-		}
-        [[nodiscard]] auto knights() const {
-			return this->pieces(Piece::KNIGHT);
-		}
-        [[nodiscard]] auto knights(Piece::Colour c) const {
-			return this->pieces(Piece::KNIGHT, c);
-		}
-        [[nodiscard]] auto bishops() const {
-			return this->pieces(Piece::BISHOP);
-		}
-        [[nodiscard]] auto bishops(Piece::Colour c) const {
-			return this->pieces(Piece::BISHOP, c);
-		}
-        [[nodiscard]] auto rooks() const {
-			return this->pieces(Piece::ROOK);
-		}
-        [[nodiscard]] auto rooks(Piece::Colour c) const {
-			return this->pieces(Piece::ROOK, c);
-		}
-        [[nodiscard]] auto queens() const {
-			return this->pieces(Piece::QUEEN);
-		}
-        [[nodiscard]] auto queens(Piece::Colour c) const {
-			return this->pieces(Piece::QUEEN, c);
-		}
-        [[nodiscard]] auto kings() const {
-			return this->pieces(Piece::KING);
-		}
-        [[nodiscard]] auto kings(Piece::Colour c) const {
-			return this->pieces(Piece::KING, c);
-		}
+        [[nodiscard]] auto en_target() const;
 
-        [[nodiscard]] auto is_piece_at(Square square) const {
-			return this->piece_mailbox.is_piece_at(square);
-		}
-        [[nodiscard]] auto get_piece_at(Square square) const {
-			return this->piece_mailbox.get(square);
-		}
+        [[nodiscard]] auto white_king_castling_rights() const;
+        [[nodiscard]] auto white_queen_castling_rights() const;
+        [[nodiscard]] auto black_king_castling_rights() const;
+        [[nodiscard]] auto black_queen_castling_rights() const;
 
-        [[nodiscard]] auto en_target() const {
-		    return this->en_passant_target;
-		}
+		void put_piece(Piece piece, Square square);
+		void remove_piece(Square square);
 
-        [[nodiscard]] auto white_king_castling_rights() const {
-		    return this->can_white_king_castle;
-		}
-
-        [[nodiscard]] auto white_queen_castling_rights() const {
-            return this->can_white_queen_castle;
-        }
-
-        [[nodiscard]] auto black_king_castling_rights() const {
-            return this->can_black_king_castle;
-        }
-
-        [[nodiscard]] auto black_queen_castling_rights() const {
-            return this->can_black_queen_castle;
-        }
-
-		void put_piece(Piece piece, Square square) {
-			this->remove_piece(square);
-			this->piece_BB[piece.type()] |= square;
-			this->piece_BB[piece.colour()] |= square;
-			this->piece_mailbox.set(square, piece);
-		}
-		void remove_piece(Square square) {
-			for (int i = 0; i < 8; ++i)
-				this->piece_BB[i] &= ~BitBoard(square);
-			this->piece_mailbox.clear(square);
-
-			for (int i = 0; i < 8; ++i)
-			    assert(!this->piece_BB[i].is_piece_at(square));
-			assert(!this->piece_mailbox.is_piece_at(square));
-		}
+		std::string fen() const;
 
 	protected:
 		// Bitboards stored with little-endian-rank-file-mapping
@@ -151,10 +72,10 @@ namespace chess {
 
 		// Castling rights
 		bool can_white_king_castle, can_white_queen_castle, can_black_king_castle, can_black_queen_castle;
-	};
-	inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
-		return print_board(stream, board);
-	}
+        int halfmove_clock, fullmove_clock;
+        Piece::Colour turn;
+    };
+	inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board);
 
 	class Board : public BaseBoard {
 	public:
@@ -173,6 +94,9 @@ namespace chess {
         void legal_moves(std::vector<Move>& moves, BitBoard from_mask, BitBoard to_mask) const;
         [[nodiscard]] std::vector<Move> legal_moves() const;
         [[nodiscard]] std::vector<Move> legal_moves(BitBoard from_mask, BitBoard to_mask) const;
+
+        [[nodiscard]] bool is_white_in_check() const;
+        [[nodiscard]] bool is_black_in_check() const;
 
 		void flip();
 
@@ -197,9 +121,7 @@ namespace chess {
 
 		[[nodiscard]] inline bool move_in_check(const Move& move) const;
 
-        [[nodiscard]] inline bool is_white_in_check() const;
-
-		size_t perft(size_t depth, std::vector<std::vector<Move>>& storage);
+        size_t perft(size_t depth, std::vector<std::vector<Move>>& storage);
 
 		void check_bb_mailbox_sync() const;
 	};
