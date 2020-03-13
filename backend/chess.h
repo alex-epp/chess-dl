@@ -38,35 +38,35 @@ namespace chess {
 
 		void clear();
 
-		[[nodiscard]] BitBoard pieces() const;
-        [[nodiscard]] BitBoard pieces(Colour c) const;
-        [[nodiscard]] BitBoard pieces(Piece::Type p) const;
-        [[nodiscard]] BitBoard pieces(Piece::Type p, Colour c) const;
-        [[nodiscard]] BitBoard pawns() const;
-        [[nodiscard]] BitBoard pawns(Colour c) const;
-        [[nodiscard]] BitBoard knights() const;
-        [[nodiscard]] BitBoard knights(Colour c) const;
-        [[nodiscard]] BitBoard bishops() const;
-        [[nodiscard]] BitBoard bishops(Colour c) const;
-        [[nodiscard]] BitBoard rooks() const;
-        [[nodiscard]] BitBoard rooks(Colour c) const;
-        [[nodiscard]] BitBoard queens() const;
-        [[nodiscard]] BitBoard queens(Colour c) const;
-        [[nodiscard]] BitBoard kings() const;
-        [[nodiscard]] BitBoard kings(Colour c) const;
+		[[nodiscard]] constexpr BitBoard pieces() const;
+        [[nodiscard]] constexpr BitBoard pieces(Colour c) const;
+        [[nodiscard]] constexpr BitBoard pieces(Piece::Type p) const;
+        [[nodiscard]] constexpr BitBoard pieces(Piece::Type p, Colour c) const;
+        [[nodiscard]] constexpr BitBoard pawns() const;
+        [[nodiscard]] constexpr BitBoard pawns(Colour c) const;
+        [[nodiscard]] constexpr BitBoard knights() const;
+        [[nodiscard]] constexpr BitBoard knights(Colour c) const;
+        [[nodiscard]] constexpr BitBoard bishops() const;
+        [[nodiscard]] constexpr BitBoard bishops(Colour c) const;
+        [[nodiscard]] constexpr BitBoard rooks() const;
+        [[nodiscard]] constexpr BitBoard rooks(Colour c) const;
+        [[nodiscard]] constexpr BitBoard queens() const;
+        [[nodiscard]] constexpr BitBoard queens(Colour c) const;
+        [[nodiscard]] constexpr BitBoard kings() const;
+        [[nodiscard]] constexpr BitBoard kings(Colour c) const;
 
-        [[nodiscard]] auto inline is_piece_at(Square square) const;
-        [[nodiscard]] auto inline get_piece_at(Square square) const;
+        [[nodiscard]] constexpr bool is_piece_at(Square square) const;
+        [[nodiscard]] constexpr Piece get_piece_at(Square square) const;
 
-        [[nodiscard]] auto en_target() const;
+        [[nodiscard]] constexpr Square en_target() const;
 
         inline void set_queen_castle(Colour c, bool value);
         inline void set_king_castle(Colour c, bool value);
         [[nodiscard]] constexpr bool can_queen_castle(Colour c) const;
         [[nodiscard]] constexpr bool can_king_castle(Colour c) const;
 
-		void put_piece(Piece piece, Square square);
-		void remove_piece(Square square);
+		void inline put_piece(Piece piece, Square square);
+		void inline remove_piece(Square square);
 
 		[[nodiscard]] std::string fen() const;
 
@@ -111,6 +111,9 @@ namespace chess {
 
         [[nodiscard]] inline bool is_check() const;
         [[nodiscard]] inline bool is_check(Colour c) const;
+        [[nodiscard]] inline bool is_draw() const;
+        [[nodiscard]] inline bool is_draw_50_move() const;
+        [[nodiscard]] inline bool is_draw_insufficient_material() const;
 
         size_t perft(size_t depth);
 
@@ -160,6 +163,76 @@ namespace chess {
 		void check_bb_mailbox_sync() const;
 	};
 
+    constexpr BitBoard BaseBoard::pieces() const {
+        return this->piece_BB[static_cast<size_t>(Colour::WHITE)] |
+               this->piece_BB[static_cast<size_t>(Colour::BLACK)];
+    }
+    constexpr BitBoard BaseBoard::pieces(Colour c) const {
+        return this->piece_BB[static_cast<size_t>(c)];
+    }
+    constexpr BitBoard BaseBoard::pieces(Piece::Type p) const {
+        return this->piece_BB[p];
+    }
+    constexpr BitBoard BaseBoard::pieces(Piece::Type p, Colour c) const {
+        return this->piece_BB[p] & this->piece_BB[static_cast<size_t>(c)];
+    }
+    constexpr BitBoard BaseBoard::pawns() const {
+        return this->pieces(Piece::PAWN);
+    }
+    constexpr BitBoard BaseBoard::pawns(Colour c) const {
+        return this->pieces(Piece::PAWN, c);
+    }
+    constexpr BitBoard BaseBoard::knights() const {
+        return this->pieces(Piece::KNIGHT);
+    }
+    constexpr BitBoard BaseBoard::knights(Colour c) const {
+        return this->pieces(Piece::KNIGHT, c);
+    }
+    constexpr BitBoard BaseBoard::bishops() const {
+        return this->pieces(Piece::BISHOP);
+    }
+    constexpr BitBoard BaseBoard::bishops(Colour c) const {
+        return this->pieces(Piece::BISHOP, c);
+    }
+    constexpr BitBoard BaseBoard::rooks() const {
+        return this->pieces(Piece::ROOK);
+    }
+    constexpr BitBoard BaseBoard::rooks(Colour c) const {
+        return this->pieces(Piece::ROOK, c);
+    }
+    constexpr BitBoard BaseBoard::queens() const {
+        return this->pieces(Piece::QUEEN);
+    }
+    constexpr BitBoard BaseBoard::queens(Colour c) const {
+        return this->pieces(Piece::QUEEN, c);
+    }
+    constexpr BitBoard BaseBoard::kings() const {
+        return this->pieces(Piece::KING);
+    }
+    constexpr BitBoard BaseBoard::kings(Colour c) const {
+        return this->pieces(Piece::KING, c);
+    }
+
+    constexpr Square BaseBoard::en_target() const {
+        return this->en_passant_target;
+    }
+
+    inline void BaseBoard::put_piece(Piece piece, Square square) {
+        this->remove_piece(square);
+        this->piece_BB[piece.type()] |= square;
+        this->piece_BB[static_cast<size_t>(piece.colour())] |= square;
+        this->piece_mailbox.set(square, piece);
+    }
+    inline void BaseBoard::remove_piece(Square square) {
+        for (int i = 0; i < 8; ++i)
+            this->piece_BB[i] &= ~BitBoard(square);
+        this->piece_mailbox.clear(square);
+
+        for (int i = 0; i < 8; ++i)
+            assert(!this->piece_BB[i].is_piece_at(square));
+        assert(!this->piece_mailbox.is_piece_at(square));
+    }
+
     void BaseBoard::set_queen_castle(Colour c, bool value) {
         this->queen_castling_rights[static_cast<size_t>(c)] = value;
     }
@@ -173,10 +246,10 @@ namespace chess {
         return this->king_castling_rights[static_cast<size_t>(c)];
     }
 
-    auto inline BaseBoard::is_piece_at(Square square) const {
+    constexpr bool BaseBoard::is_piece_at(Square square) const {
         return this->piece_mailbox.is_piece_at(square);
     }
-    auto inline BaseBoard::get_piece_at(Square square) const {
+    constexpr Piece BaseBoard::get_piece_at(Square square) const {
         return this->piece_mailbox.get(square);
     }
 
@@ -189,6 +262,28 @@ namespace chess {
             return this->is_in_check<Colour::WHITE>();
         else
             return this->is_in_check<Colour::BLACK>();
+    }
+
+//    bool Board::is_draw() const {
+//        return this->is_draw_50_move() || this->is_draw_insufficient_material();
+//    }
+    bool Board::is_draw_50_move() const {
+        return this->halfmove_clock >= 50;
+    }
+    bool Board::is_draw_insufficient_material() const {
+        if (this->pieces().pop_count() > 4)
+            return false;  // No draw, too many pieces
+        else if (this->pieces().pop_count() == 2)
+            return true; // King vs king
+        else if (this->pieces().pop_count() == 3 && (this->bishops().pop_count() == 1 ||
+                                                     this->knights().pop_count() == 1))
+            return true; // King+bishop vs king or king+knight vs king
+        else if (this->bishops(Colour::WHITE).pop_count() == 1 &&
+                 this->bishops(Colour::BLACK).pop_count() == 1 &&
+                 this->bishops(Colour::WHITE).first().is_white_square() == this->bishops(Colour::BLACK).first().is_white_square())
+            return true; // bishops on same square colour
+        else
+            return false;
     }
 
     template <Colour TurnColour>
