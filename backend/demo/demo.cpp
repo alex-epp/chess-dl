@@ -35,7 +35,6 @@ int main()
 		if (moves.empty()) break;
 		auto move = moves[rand() % moves.size()];
 		b.push_move(move);
-		b.flip();
 	}
 	auto end_time = std::chrono::system_clock::now();
 

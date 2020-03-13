@@ -6,6 +6,7 @@
 
 #include <fstream>
 #include <filesystem>
+#include <utility>
 #include <vector>
 #include <torch/data/datasets/base.h>
 #include <torch/data/example.h>
@@ -69,10 +70,20 @@ class CHESS : public torch::data::datasets::StreamDataset<CHESS, torch::optional
         ShuffledPositionMoveStreamer shuffled_position_move_streamer;
 
         static std::vector<fs::path> get_game_files(const std::vector<fs::path>& roots, Mode mode);
-        static fs::path find_path_by_name(const std::string& name, const std::vector<fs::path>& roots);
+        static std::optional<fs::path> find_path_by_name(const std::string& name, const std::vector<fs::path>& roots);
         static ExampleType position_move_to_example(const Board& position, const Move& move);
         static torch::Tensor BB_to_tensor(const BitBoard& bb);
 
         static const std::array<fs::path, 4> game_files_by_mode;
+
+    public:
+        class Exception : public std::exception {
+        public:
+            explicit inline Exception(std::string msg) : msg(std::move(msg)) {}
+            ~Exception() noexcept override = default;
+            [[nodiscard]] inline const char* what() const noexcept override { return msg.c_str(); }
+        private:
+            const std::string msg;
+        };
     };
 }

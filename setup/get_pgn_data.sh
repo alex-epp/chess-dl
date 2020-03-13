@@ -11,11 +11,17 @@ filename_pattern="lichess_db_standard_rated_.*.pgn"
 while read -r url; do
   filename=$(echo "$url" | grep -o "$filename_pattern")
   outfile="$base_path_1"/"$filename"
-  wget -O - "$url" | lbzip2 -d | $pgn_minify >"$outfile"
+  if [ ! -f "$outfile" ]; then
+    wget -O - "$url" | lbzip2 -d | $pgn_minify >"$outfile".tmp
+    mv "$outfile".tmp "$outfile"
+  fi
 done < $urls_1
 
 while read -r url; do
   filename=$(echo "$url" | grep -o "$filename_pattern")
   outfile="$base_path_2"/"$filename"
-  wget -O - "$url" | lbzip2 -d | $pgn_minify >"$outfile"
+  if [ ! -f "$outfile" ]; then
+    wget -O - "$url" | lbzip2 -d | $pgn_minify >"$outfile".tmp
+    mv "$outfile".tmp "$outfile"
+  fi
 done < $urls_2

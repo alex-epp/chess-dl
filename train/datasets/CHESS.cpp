@@ -36,22 +36,27 @@ CHESS::CHESS(const std::vector<fs::path>& roots, Mode mode)
 
 std::vector<fs::path> CHESS::get_game_files(const std::vector<fs::path>& roots, CHESS::Mode mode) {
     std::ifstream in(CHESS::game_files_by_mode[static_cast<size_t>(mode)]);
-    assert(!in.fail());
+    if (in.fail())
+        throw CHESS::Exception("Failed to open file: " +
+                               CHESS::game_files_by_mode[static_cast<size_t>(mode)].string());
 
     std::vector<fs::path> game_files;
     std::string name;
     while (in >> name) {
-        game_files.push_back(CHESS::find_path_by_name(name, roots));
+        auto path = CHESS::find_path_by_name(name, roots);
+        if (path)
+            game_files.push_back(*path);
+        else
+            throw CHESS::Exception("Failed to find file: " + name);
     }
     return game_files;
 }
 
-fs::path CHESS::find_path_by_name(const std::string& name, const std::vector<fs::path>& roots) {
+std::optional<fs::path> CHESS::find_path_by_name(const std::string& name, const std::vector<fs::path>& roots) {
     for (const auto& root : roots) {
         if (fs::exists(root / name)) return root / name;
     }
-    assert(false && "Cannot find path by name");
-    return fs::path();
+    return std::nullopt;
 }
 
 CHESS::BatchType CHESS::get_batch(size_t batch_size) {
@@ -94,26 +99,28 @@ CHESS::ExampleType CHESS::get_next_example() {
  * is white's turn.
  *
  * A move is represented by two 64-bit one-hot vectors, from and to.
+ *
+ * Overall, x's have size [836] and y's have size [2, 64]
  */
 CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
     assert(position.is_piece_at(move.from()));
-    assert(position.get_piece_at(move.from()).colour() == Piece::WHITE);
+    assert(position.get_piece_at(move.from()).colour() == Colour::WHITE);
 
     auto position_encoded = torch::cat(
             {
-                CHESS::BB_to_tensor(position.pawns(Piece::WHITE)),
-                CHESS::BB_to_tensor(position.bishops(Piece::WHITE)),
-                CHESS::BB_to_tensor(position.knights(Piece::WHITE)),
-                CHESS::BB_to_tensor(position.rooks(Piece::WHITE)),
-                CHESS::BB_to_tensor(position.queens(Piece::WHITE)),
-                CHESS::BB_to_tensor(position.kings(Piece::WHITE)),
+                CHESS::BB_to_tensor(position.pawns(Colour::WHITE)),
+                CHESS::BB_to_tensor(position.bishops(Colour::WHITE)),
+                CHESS::BB_to_tensor(position.knights(Colour::WHITE)),
+                CHESS::BB_to_tensor(position.rooks(Colour::WHITE)),
+                CHESS::BB_to_tensor(position.queens(Colour::WHITE)),
+                CHESS::BB_to_tensor(position.kings(Colour::WHITE)),
 
-                CHESS::BB_to_tensor(position.pawns(Piece::BLACK)),
-                CHESS::BB_to_tensor(position.bishops(Piece::BLACK)),
-                CHESS::BB_to_tensor(position.knights(Piece::BLACK)),
-                CHESS::BB_to_tensor(position.rooks(Piece::BLACK)),
-                CHESS::BB_to_tensor(position.queens(Piece::BLACK)),
-                CHESS::BB_to_tensor(position.kings(Piece::BLACK)),
+                CHESS::BB_to_tensor(position.pawns(Colour::BLACK)),
+                CHESS::BB_to_tensor(position.bishops(Colour::BLACK)),
+                CHESS::BB_to_tensor(position.knights(Colour::BLACK)),
+                CHESS::BB_to_tensor(position.rooks(Colour::BLACK)),
+                CHESS::BB_to_tensor(position.queens(Colour::BLACK)),
+                CHESS::BB_to_tensor(position.kings(Colour::BLACK)),
 
                 CHESS::BB_to_tensor(position.en_target()),
 
@@ -173,13 +180,13 @@ std::vector<std::pair<Board, Move>> datasets::read_pgn(const std::string& pgn) {
     std::istringstream iss(pgn);
     std::string counter_or_end, move_san;
     auto board = load_FEN<chess::Board>(STARTING_FEN);
-    auto turn = Piece::WHITE;
+    auto turn = Colour::WHITE;
     for(size_t i = 0; !iss.eof(); ++i) {
         if (i % 3 == 0) {
             iss >> counter_or_end;
         } else {
             iss >> move_san;
-            if (move_san == "1-0" || move_san == "0-1" || move_san == "1/2-1/2")
+            if (move_san == "1-0" || move_san == "0-1" || move_san == "1/2-1/2" || move_san == "*")
                 continue;
 
             auto move = board.parse_san(move_san, turn);
