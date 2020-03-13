@@ -18,7 +18,13 @@ int main(int argc, char** argv) {
     auto engine = make_random_engine(random);
     auto opponent = make_random_engine(random);
 
-    std::cout << engine::eval(engine, opponent, 1) << std::endl;
+    auto start_time = std::chrono::system_clock::now();
+    auto result = engine::eval(engine, opponent, 100);
+    auto end_time = std::chrono::system_clock::now();
+
+    std::cout << result << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "Took: " << duration.count() << " ms." << std::endl;
 
     return EXIT_SUCCESS;
 }
