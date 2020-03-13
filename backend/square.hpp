@@ -173,6 +173,11 @@ namespace chess {
 		    else return this->flip_vertical();
 		}
 
+		[[nodiscard]] constexpr bool is_white_square() const {
+		    return static_cast<size_t>(this->rank()) % 2 !=
+                    static_cast<size_t>(this->file()) % 2;
+		}
+
         [[nodiscard]] constexpr bool operator == (const Square rhs) const {
 			return this->square == rhs.square;
 		}
