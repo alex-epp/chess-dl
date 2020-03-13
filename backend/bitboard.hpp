@@ -9,6 +9,8 @@
 #include <cstdint>
 #include <cassert>
 #include <iostream>
+#include <bitset>
+
 
 namespace chess {
 	class BitBoard;
@@ -178,12 +180,8 @@ namespace chess {
 	        return __builtin_bswap64(this->bb);
 #endif
 		}
-		[[nodiscard]] constexpr size_t pop_count() const {
-#ifdef _WIN32
-#error("pop_count() not implemented for windows yet.")
-#else
-	        return __builtin_popcount(this->bb);
-#endif
+		[[nodiscard]] size_t pop_count() const {
+	        return std::bitset<64>(this->bb).count();
 	    }
 
 		[[nodiscard]] constexpr BitBoard fill_N_occluded(BitBoard empty) const {
