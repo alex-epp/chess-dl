@@ -164,10 +164,6 @@ namespace chess {
         return fen;
     }
 
-    inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
-        return print_board(stream, board);
-    }
-
     std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
         for (int ri = 7; ri >= 0; --ri) {
             for (int fi = 0; fi < 8; ++fi) {
