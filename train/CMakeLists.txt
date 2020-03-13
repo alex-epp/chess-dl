@@ -1,7 +1,9 @@
-file(GLOB_RECURSE TRAIN_SOURCES
+file(GLOB TRAIN_SOURCES
         CONFIGURE_DEPENDS
         "*.cpp"
-        "*.hpp")
+        "*.hpp"
+        "./datasets/*.cpp"
+        "./datasets/*.hpp")
 
 file(GLOB BACKEND_SOURCES
         CONFIGURE_DEPENDS
