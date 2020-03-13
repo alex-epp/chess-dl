@@ -7,6 +7,7 @@
 #include <string_view>
 #include <limits>
 #include <cassert>
+#include <string>
 
 #ifdef max
 #undef max
@@ -51,6 +52,10 @@ namespace chess {
 		}
 		constexpr bool is_empty() const {
 		    return this->square == Square::EMPTY;
+		}
+
+		[[nodiscard]] inline const std::string uci() const {
+		    return std::string(1, 'a' + static_cast<char>(this->file())) + char('1' + static_cast<char>(this->rank()));
 		}
 
 	private:
