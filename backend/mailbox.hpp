@@ -14,28 +14,29 @@ namespace chess {
 	*/
 	class Mailbox {
 	public:
-		inline bool is_piece_at(Square square) const {
+		[[nodiscard]] constexpr bool is_piece_at(Square square) const {
 			return this->piece_mailbox[square.get()].type() != Piece::NO_TYPE;
 		}
-		inline Piece get(Square square) const {
+        [[nodiscard]] constexpr Piece get(Square square) const {
 			return this->piece_mailbox[square.get()];
 		}
-		inline void set(Square square, Piece piece) {
+        constexpr void set(Square square, Piece piece) {
 			this->piece_mailbox[square.get()] = piece;
 		}
-		inline void clear(Square square) {
+
+        inline void clear(Square square) {
 			this->piece_mailbox[square.get()].clear();
 		}
-		inline void clear() {
+        inline void clear() {
 			for (auto& p : this->piece_mailbox)
 				p.clear();
 		}
 
-		inline bool operator == (const Mailbox& rhs) const {
+        inline bool operator == (const Mailbox& rhs) const {
 			return this->piece_mailbox == rhs.piece_mailbox;
 		}
 
-		inline void flip() {
+        inline void flip() {
 			for (size_t i = 0; i < this->piece_mailbox.size() / 2; ++i)
 				std::swap(this->piece_mailbox[i], this->piece_mailbox[i^56]);
 			
