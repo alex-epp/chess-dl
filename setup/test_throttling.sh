@@ -1,0 +1,9 @@
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null
+wget -O - https://storage.googleapis.com/openimages/v6/oidv6-train-annotations-bbox.csv >/dev/null

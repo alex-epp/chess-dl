@@ -1,9 +1,7 @@
-#include "catch.hpp"
-
-#include <cstdint>
-#include <sstream>
-
 #include "tests.hpp"
+#include "catch.hpp"
+#include <cstdint>
+
 #include "../bitboard.hpp"
 
 using namespace chess;
@@ -256,5 +254,9 @@ namespace tests {
 			auto constexpr expected = BB::B3 | BB::C4 | BB::E3 | BB::F4 | BB::G5;
             REQUIRE(expected == filled);
 		}
+		SECTION("TestPopCount") {
+	        auto bb = BB::B3 | BB::C3 | BB::E4 | BB::A6 | BB::G6 | BB::E7 | BB::G7;
+	        REQUIRE(bb.pop_count() == 7);
+	    }
 	}
 }
