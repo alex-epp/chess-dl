@@ -82,8 +82,8 @@ namespace chess {
 		Square en_passant_target;
 
 		// Castling rights
-		bool king_castling_rights[2];
-		bool queen_castling_rights[2];
+		std::array<bool, 2> king_castling_rights;
+        std::array<bool, 2> queen_castling_rights;
 		size_t halfmove_clock, fullmove_clock;
         Colour turn;
     };
@@ -467,7 +467,7 @@ namespace chess {
                        | this->pawns(EnemyColour).shift_SE(TurnColour) | this->pawns(EnemyColour).shift_SW(TurnColour);
 
         auto move_bb = this->king_attacks(this->kings(TurnColour)) & ~this->pieces(TurnColour) & ~attacks;
-        auto from_position = *this->kings(TurnColour).begin();
+        auto from_position = this->kings(TurnColour).first();
         assert(this->get_piece_at(from_position).colour() == TurnColour);
         assert(this->get_piece_at(from_position).type() == Piece::KING);
 
@@ -478,13 +478,13 @@ namespace chess {
         }
 
         if (this->can_king_castle(TurnColour) &&
-            (attacks & (BB::E1 | BB::F1 | BB::G1).orient(TurnColour)).empty() &&
-            (this->pieces() & (BB::F1 | BB::G1).orient(TurnColour)).empty()) {
+                (attacks & (BB::E1 | BB::F1 | BB::G1).orient(TurnColour)).empty() &&
+                (this->pieces() & (BB::F1 | BB::G1).orient(TurnColour)).empty()) {
             this->add_pseudo_legal_move<TurnColour>(moves, S::E1.orient(TurnColour), S::G1.orient(TurnColour), Move::K_CASTLE);
         }
         if (this->can_queen_castle(TurnColour) &&
-            (attacks & (BB::E1 | BB::D1 | BB::C1).orient(TurnColour)).empty() &&
-            (this->pieces() & (BB::D1 | BB::C1 | BB::B1).orient(TurnColour)).empty()) {
+                (attacks & (BB::E1 | BB::D1 | BB::C1).orient(TurnColour)).empty() &&
+                (this->pieces() & (BB::D1 | BB::C1 | BB::B1).orient(TurnColour)).empty()) {
             this->add_pseudo_legal_move<TurnColour>(moves, S::E1.orient(TurnColour), S::C1.orient(TurnColour), Move::Q_CASTLE);
         }
     }
@@ -563,7 +563,7 @@ namespace chess {
             assert(this->piece_mailbox.get(move.to()).colour() == Piece::enemy_colour<TurnColour>());
         auto type = this->piece_mailbox.get(move.from()).type();
         if (!this->en_passant_target.is_empty())
-            assert(this->en_passant_target.rank() == orient<TurnColour>(Rank::R6)); // TODO
+            assert(this->en_passant_target.rank() == orient<TurnColour>(Rank::R6));
 
         auto from_BB = BitBoard(move.from());
         auto to_BB = BitBoard(move.to());
