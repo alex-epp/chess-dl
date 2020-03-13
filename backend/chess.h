@@ -258,7 +258,7 @@ namespace chess {
     }
 
     bool Board::is_check(Colour c) const {
-        if (this->turn == Colour::WHITE)
+        if (c == Colour::WHITE)
             return this->is_in_check<Colour::WHITE>();
         else
             return this->is_in_check<Colour::BLACK>();
