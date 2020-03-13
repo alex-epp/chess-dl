@@ -10,6 +10,7 @@ message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 
 add_subdirectory("backend")
+add_subdirectory("engine")
 add_subdirectory("setup")
 add_subdirectory("train")
 
