@@ -23,10 +23,10 @@ namespace tests
 		}
 
         SECTION("Regression_1") {
-            auto board = chess::load_FEN<Board>(chess::STARTING_FEN); board.push_san("d4"); board.flip();
-            auto move = board.parse_san("d5", Piece::BLACK);
-            REQUIRE(move.from() == S::D2);
-            REQUIRE(move.to() == S::D4);
+            auto board = chess::load_FEN<Board>(chess::STARTING_FEN); board.push_san("d4");
+            auto move = board.parse_san("d5");
+            REQUIRE(move.from() == S::D7);
+            REQUIRE(move.to() == S::D5);
             REQUIRE(move.flags() == Move::D_P_PUSH);
         }
 

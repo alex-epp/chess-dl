@@ -115,6 +115,62 @@ namespace chess {
 			return (*this >> 7) & ~BitBoard(File::A);
 		}
 
+		[[nodiscard]] constexpr BitBoard orient(Colour c) const {
+			switch (c) {
+				case Colour::WHITE: return *this;
+				case Colour::BLACK: return this->flip_vertical();
+			}
+		}
+
+		[[nodiscard]] constexpr BitBoard shift_N(Colour c) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_N();
+				case Colour::BLACK: return this->shift_S();
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_N(Colour c, const int amount) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_N(amount);
+				case Colour::BLACK: return this->shift_S(amount);
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_S(Colour c) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_S();
+				case Colour::BLACK: return this->shift_N();
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_S(Colour c, const int amount) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_S(amount);
+				case Colour::BLACK: return this->shift_N(amount);
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_NW(Colour c) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_NW();
+				case Colour::BLACK: return this->shift_SW();
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_NE(Colour c) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_NE();
+				case Colour::BLACK: return this->shift_SE();
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_SW(Colour c) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_SW();
+				case Colour::BLACK: return this->shift_NW();
+			}
+		}
+		[[nodiscard]] constexpr BitBoard shift_SE(Colour c) const {
+			switch(c) {
+				case Colour::WHITE: return this->shift_SE();
+				case Colour::BLACK: return this->shift_NE();
+			}
+		}
+
 		[[nodiscard]] constexpr BitBoard flip_vertical() const {
 #ifdef _WIN32
 			return _byteswap_uint64(this->bb);
@@ -122,7 +178,6 @@ namespace chess {
 	        return __builtin_bswap64(this->bb);
 #endif
 		}
-
 		[[nodiscard]] constexpr size_t pop_count() const {
 #ifdef _WIN32
 #error("pop_count() not implemented for windows yet.")

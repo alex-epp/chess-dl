@@ -28,7 +28,7 @@ namespace chess {
 		auto full_move_fen = tokens[5];
 
 		assert(turn_fen == "w" || turn_fen == "b");
-		auto turn = (turn_fen == "w") ? Piece::WHITE : Piece::BLACK;
+		auto turn = (turn_fen == "w") ? Colour::WHITE : Colour::BLACK;
 		auto castle_rights = castle_rights_fen;  // TODO: decide on a castle-rights format
 		auto en_passant_target = Square(en_passant_fen);
 		unsigned int half_move, full_move;

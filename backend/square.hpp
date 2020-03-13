@@ -115,15 +115,52 @@ namespace chess {
 			return this->square + COMPASS_ROSE[NORTHWEST] * amount;
 		}
 
-        [[nodiscard]] constexpr Square forward(Piece::Colour colour) const {
-			auto dir = (colour == Piece::WHITE) ? 1 : -1;
+        [[nodiscard]] constexpr Square north(Colour c) const {
+            return c == Colour::WHITE ? this->north() : this->south();
+        }
+        [[nodiscard]] constexpr Square south(Colour c) const {
+            return c == Colour::WHITE ? this->south() : this->north();
+        }
+        [[nodiscard]] constexpr Square northeast(Colour c) const {
+            return c == Colour::WHITE ? this->northeast() : this->southeast();
+        }
+        [[nodiscard]] constexpr Square southeast(Colour c) const {
+            return c == Colour::WHITE ? this->southeast() : this->northeast();
+        }
+        [[nodiscard]] constexpr Square southwest(Colour c) const {
+            return c == Colour::WHITE ? this->southwest() : this->northwest();
+        }
+        [[nodiscard]] constexpr Square northwest(Colour c) const {
+            return c == Colour::WHITE ? this->northwest() : this->southwest();
+        }
+
+        [[nodiscard]] constexpr Square north(Colour c, const int amount) const {
+            return c == Colour::WHITE ? this->north(amount) : this->south(amount);
+        }
+        [[nodiscard]] constexpr Square south(Colour c, const int amount) const {
+            return c == Colour::WHITE ? this->south(amount) : this->north(amount);
+        }
+        [[nodiscard]] constexpr Square northeast(Colour c, const int amount) const {
+            return c == Colour::WHITE ? this->northeast(amount) : this->southeast(amount);
+        }
+        [[nodiscard]] constexpr Square southeast(Colour c, const int amount) const {
+            return c == Colour::WHITE ? this->southeast(amount) : this->northeast(amount);
+        }
+        [[nodiscard]] constexpr Square southwest(Colour c, const int amount) const {
+            return c == Colour::WHITE ? this->southwest(amount) : this->northwest(amount);
+        }
+        [[nodiscard]] constexpr Square northwest(Colour c, const int amount) const {
+            return c == Colour::WHITE ? this->northwest(amount) : this->southwest(amount);
+        }
+
+        [[nodiscard]] constexpr Square forward(Colour colour) const {
+			auto dir = (colour == Colour::WHITE) ? 1 : -1;
 			return this->north(dir);
 		}
-        [[nodiscard]] constexpr Square backward(Piece::Colour colour) const {
-			auto dir = (colour == Piece::WHITE) ? 1 : -1;
+        [[nodiscard]] constexpr Square backward(Colour colour) const {
+			auto dir = (colour == Colour::WHITE) ? 1 : -1;
 			return this->south(dir);
 		}
-
         [[nodiscard]] constexpr Square flip_vertical() const {
 			if (this->square == EMPTY)
 				return EMPTY;
@@ -131,11 +168,20 @@ namespace chess {
 				return this->square ^ 56;
 		}
 
+		[[nodiscard]] constexpr Square orient(Colour c) const {
+		    if (c == Colour::WHITE) return this->get();
+		    else return this->flip_vertical();
+		}
+
         [[nodiscard]] constexpr bool operator == (const Square rhs) const {
 			return this->square == rhs.square;
 		}
+        [[nodiscard]] constexpr bool operator != (const Square rhs) const {
+            return this->square != rhs.square;
+        }
 
-	private:
+
+    private:
 		unsigned int square;
 
 		friend class BitBoardBitScanIterator;

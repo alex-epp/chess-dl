@@ -6,16 +6,16 @@
 #include <string_view>
 
 namespace chess {
+    enum class Colour {
+        WHITE = 0,
+        BLACK,
+    };
 
 	/*
 	Stores a piece's type and colour.
 	*/
 	class Piece {
 	public:
-		enum Colour {
-			WHITE = 0,
-			BLACK,
-		};
 		enum Type {
 			PAWN = 2,
 			KNIGHT,
@@ -26,17 +26,21 @@ namespace chess {
 			NO_TYPE
 		};
 
-		static Colour enemy_colour(const Colour c) {
-			return static_cast<Colour>(Colour::BLACK - c);
+        [[nodiscard]] static constexpr Colour enemy_colour(const Colour c) {
+			return static_cast<Colour>(1 - static_cast<size_t>(c));
+		}
+		template <Colour C>
+		[[nodiscard]] static constexpr Colour enemy_colour() {
+		    return Piece::enemy_colour(C);
 		}
 
-		constexpr Piece() : m_type(NO_TYPE), m_colour(WHITE) {}
+		constexpr Piece() : m_type(NO_TYPE), m_colour(Colour::WHITE) {}
 		constexpr Piece(Type t, Colour c) : m_type(t), m_colour(c) {}
 		constexpr Piece(char name) : Piece() {
 			auto name_lower = util::tolower(name);
 			assert(name_lower == 'p' || name_lower == 'n' || name_lower == 'b' || name_lower == 'r' ||
 				name_lower == 'q' || name_lower == 'k');
-			this->m_colour = util::isupper(name) ? WHITE : BLACK;
+			this->m_colour = util::isupper(name) ? Colour::WHITE : Colour::BLACK;
 			switch (name_lower) {
 			case 'p': this->m_type = PAWN; break;
 			case 'n': this->m_type = KNIGHT; break;
@@ -48,8 +52,8 @@ namespace chess {
 			}
 		}
 
-		constexpr auto type() const { return this->m_type; }
-		constexpr auto colour() const { return this->m_colour; }
+		[[nodiscard]] constexpr auto type() const { return this->m_type; }
+		[[nodiscard]] constexpr auto colour() const { return this->m_colour; }
 
 		constexpr bool operator == (const Piece& rhs) const {
 			return (this->type() == NO_TYPE && rhs.type() == NO_TYPE)
