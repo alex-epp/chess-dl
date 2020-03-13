@@ -76,8 +76,8 @@ namespace chess {
         }
 
 	public: // range-based iteration
-        [[nodiscard]] auto begin() const { return BitBoardBitScanIterator(this); }
-        [[nodiscard]] auto end() const { return BitBoardBitScanIterator::END; }
+        [[nodiscard]] inline auto begin() const { return BitBoardBitScanIterator(this); }
+        [[nodiscard]] inline auto end() const { return BitBoardBitScanIterator::END; }
 
 	public: // Operations we can perform on bitboards
 		[[nodiscard]] constexpr BitBoard shift_N() const {
