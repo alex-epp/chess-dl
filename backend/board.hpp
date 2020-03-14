@@ -5,6 +5,7 @@
 #include "move.hpp"
 #include "piece.hpp"
 #include "square.hpp"
+#include "pext_attacks.hpp"
 
 #include <regex>
 #include <vector>

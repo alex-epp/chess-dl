@@ -13,6 +13,8 @@ find_package(mio REQUIRED)
 
 include_directories("./")
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mbmi2")
+
 add_subdirectory("backend")
 add_subdirectory("engine")
 add_subdirectory("setup")

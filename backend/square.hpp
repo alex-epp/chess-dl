@@ -15,6 +15,10 @@
 
 
 namespace chess {
+	enum Direction {
+		NORTH = 0, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST
+	};
+
 	class BitBoard;
 	class BitBoardIterator;
 
@@ -58,13 +62,22 @@ namespace chess {
 		    return std::string(1, 'a' + static_cast<char>(this->file())) + char('1' + static_cast<char>(this->rank()));
 		}
 
+		[[nodiscard]] constexpr bool valid() {
+			return this->is_empty() || (0 <= this->square && this->square < 64);
+		}
+
 	private:
-		enum Direction {
-			NORTH = 0, NORTHEAST, EAST, SOUTHEAST, SOUTH, SOUTHWEST, WEST, NORTHWEST
-		};
-		constexpr static int COMPASS_ROSE[9] = { 8, 9, 1, -7, -8, -9, -2, 7 };
+
+		constexpr static int COMPASS_ROSE[9] = { 8, 9, 1, -7, -8, -9, -1, 7 };
 
 	public: // Operations
+		[[nodiscard]] constexpr Square shift(Direction d) const {
+			return this->square + COMPASS_ROSE[d];
+		}
+		[[nodiscard]] constexpr Square shift(Direction d, int amount) const {
+			return this->square + COMPASS_ROSE[d] * amount;
+		}
+
         [[nodiscard]] constexpr Square north() const {
 			return this->square + COMPASS_ROSE[NORTH];
 		}
@@ -166,6 +179,16 @@ namespace chess {
 				return EMPTY;
 			else
 				return this->square ^ 56;
+		}
+
+		[[nodiscard]] int distance_rank(Square s) const {
+			return std::abs(static_cast<int>(this->rank()) - static_cast<int>(s.rank()));
+		}
+		[[nodiscard]] int distance_file(Square s) const {
+			return std::abs(static_cast<int>(this->file()) - static_cast<int>(s.file()));
+		}
+		[[nodiscard]] int distance(Square s) const {
+			return std::max(this->distance_rank(s), this->distance_file(s));
 		}
 
 		[[nodiscard]] constexpr Square orient(Colour c) const {

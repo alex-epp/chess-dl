@@ -1,6 +1,8 @@
 #pragma once
 
 
+#include <immintrin.h>
+
 namespace utils {
 
     template <typename T>
@@ -38,4 +40,7 @@ namespace utils {
         return 'A' <= c && c <= 'Z';
     }
 
+    inline std::uint64_t pext(std::uint64_t val, std::uint64_t mask) {
+        return _pext_u64(val, mask);
+    }
 }
