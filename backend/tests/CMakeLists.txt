@@ -11,5 +11,3 @@ file(GLOB BACKEND_SOURCES
 add_executable(backend_tests ${TESTS_SOURCES} ${BACKEND_SOURCES})
 set_property(TARGET backend_tests PROPERTY CXX_STANDARD 17)
 set_property(TARGET backend_tests PROPERTY CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
