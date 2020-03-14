@@ -6,6 +6,8 @@
 #include "square.hpp"
 #include "coord.hpp"
 
+#include "../utils/utils.hpp"
+
 #include <cstdint>
 #include <cassert>
 #include <iostream>
@@ -118,67 +120,36 @@ namespace chess {
 		}
 
 		[[nodiscard]] constexpr BitBoard orient(Colour c) const {
-			switch (c) {
-				case Colour::WHITE: return *this;
-				case Colour::BLACK: return this->flip_vertical();
-			}
+            return c == Colour::WHITE ? *this : this->flip_vertical();
 		}
 
 		[[nodiscard]] constexpr BitBoard shift_N(Colour c) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_N();
-				case Colour::BLACK: return this->shift_S();
-			}
+            return c == Colour::WHITE ? this->shift_N() : this->shift_S();
 		}
 		[[nodiscard]] constexpr BitBoard shift_N(Colour c, const int amount) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_N(amount);
-				case Colour::BLACK: return this->shift_S(amount);
-			}
+            return c == Colour::WHITE ? this->shift_N(amount) : this->shift_S(amount);
 		}
 		[[nodiscard]] constexpr BitBoard shift_S(Colour c) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_S();
-				case Colour::BLACK: return this->shift_N();
-			}
+            return c == Colour::WHITE ? this->shift_S() : this->shift_N();
 		}
 		[[nodiscard]] constexpr BitBoard shift_S(Colour c, const int amount) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_S(amount);
-				case Colour::BLACK: return this->shift_N(amount);
-			}
+            return c == Colour::WHITE ? this->shift_S(amount) : this->shift_N(amount);
 		}
 		[[nodiscard]] constexpr BitBoard shift_NW(Colour c) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_NW();
-				case Colour::BLACK: return this->shift_SW();
-			}
+            return c == Colour::WHITE ? this->shift_NW() : this->shift_SW();
 		}
 		[[nodiscard]] constexpr BitBoard shift_NE(Colour c) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_NE();
-				case Colour::BLACK: return this->shift_SE();
-			}
+	        return c == Colour::WHITE ? this->shift_NE() : this->shift_SE();
 		}
 		[[nodiscard]] constexpr BitBoard shift_SW(Colour c) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_SW();
-				case Colour::BLACK: return this->shift_NW();
-			}
+            return c == Colour::WHITE ? this->shift_SW() : this->shift_NW();
 		}
 		[[nodiscard]] constexpr BitBoard shift_SE(Colour c) const {
-			switch(c) {
-				case Colour::WHITE: return this->shift_SE();
-				case Colour::BLACK: return this->shift_NE();
-			}
-		}
+            return c == Colour::WHITE ? this->shift_SE() : this->shift_NE();
+        }
 
 		[[nodiscard]] constexpr BitBoard flip_vertical() const {
-#ifdef _WIN32
-			return _byteswap_uint64(this->bb);
-#else
-	        return __builtin_bswap64(this->bb);
-#endif
+	        return utils::byteswap(this->bb);
 		}
 		[[nodiscard]] size_t pop_count() const {
 	        return std::bitset<64>(this->bb).count();
