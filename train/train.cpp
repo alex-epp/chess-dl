@@ -5,8 +5,6 @@
 #include <filesystem>
 
 #include "datasets/CHESS.hpp"
-#include "eval/random_engine.hpp"
-#include "eval/lambda_engine.hpp"
 
 using namespace torch::data;
 namespace fs = std::filesystem;

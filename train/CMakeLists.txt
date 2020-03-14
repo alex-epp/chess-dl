@@ -8,8 +8,7 @@ file(GLOB TRAIN_SOURCES
 file(GLOB BACKEND_SOURCES
         CONFIGURE_DEPENDS
         "../backend/*.cpp"
-        "../backend/*.hpp"
-        "../backend/*.h")
+        "../backend/*.hpp")
 
 add_executable (train ${TRAIN_SOURCES} ${BACKEND_SOURCES})
 target_link_libraries(train "${TORCH_LIBRARIES}" stdc++fs)

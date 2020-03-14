@@ -12,7 +12,7 @@
 #include <torch/data/example.h>
 #include <torch/types.h>
 
-#include "../../backend/chess.h"
+#include "../../backend/chess.hpp"
 
 
 namespace chess::datasets {

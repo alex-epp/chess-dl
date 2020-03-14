@@ -1846,7 +1846,7 @@ namespace Catch {
 } // namespace Catch
 
 //////////////////////////////////////////////////////
-// Separate std-lib types stringification, so it can be selectively enabled
+// Separate std-catch2 types stringification, so it can be selectively enabled
 // This means that we do not bring in
 
 #if defined(CATCH_CONFIG_ENABLE_ALL_STRINGMAKERS)

@@ -26,9 +26,9 @@ namespace chess {
 			assert((square >= 0 && square < 64) || square == EMPTY);
 		}
 		constexpr Square(std::string_view uci) : Square() {
-			assert(uci == "-" || (uci.length() == 2 && 'a' <= util::tolower(uci[0]) && util::tolower(uci[0]) <= 'h' && '1' <= uci[1] && uci[1] <= '8'));
+			assert(uci == "-" || (uci.length() == 2 && 'a' <= utils::tolower(uci[0]) && utils::tolower(uci[0]) <= 'h' && '1' <= uci[1] && uci[1] <= '8'));
 			if (uci != "-") {
-				auto file = util::tolower(uci[0]) - 'a';
+				auto file = utils::tolower(uci[0]) - 'a';
 				auto rank = uci[1] - '1';
 				assert(0 <= file && file < 8);
 				assert(0 <= rank && rank < 8);

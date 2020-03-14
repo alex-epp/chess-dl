@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <memory>
 
-#include "../backend/chess.h"
+#include "../backend/chess.hpp"
 
 namespace engine {
 

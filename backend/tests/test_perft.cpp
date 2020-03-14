@@ -1,8 +1,8 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include <cstdint>
 #include <sstream>
 
-#include "../chess.h"
+#include "../chess.hpp"
 #include "../fen.hpp"
 
 namespace tests {
@@ -16,11 +16,18 @@ namespace tests {
     void perft_test(const char* fen, std::initializer_list<size_t> nodes_list) {
         size_t depth = 1;
         for (auto it = nodes_list.begin(); it != nodes_list.end(); ++it, ++depth) {
-            REQUIRE(static_cast<size_t>(*it) == chess::load_FEN<chess::Board>(fen).perft(depth));
+            REQUIRE(static_cast<size_t>(*it) == chess::perft(chess::load_FEN<chess::Board>(fen), depth));
         }
     }
 
-	TEST_CASE("TestPerft") {
+    void perft_cache_test(const char* fen, std::initializer_list<size_t> nodes_list) {
+        size_t depth = 1;
+        for (auto it = nodes_list.begin(); it != nodes_list.end(); ++it, ++depth) {
+            REQUIRE(static_cast<size_t>(*it) == chess::perft_cache(chess::load_FEN<chess::Board>(fen), depth));
+        }
+    }
+
+	TEST_CASE("perft") {
 		SECTION("perft_initial") { perft_test(initial, { 20, 400, 8902, 197281, 4865609 }); }
 		SECTION("perft_kiwipete") { perft_test(kiwipete, { 48, 2039, 97862, 4085603, 193690690 }); }
 		SECTION("perft_position_3") { perft_test(position_3, { 14, 191, 2812, 43238, 674624 }); }
@@ -28,4 +35,13 @@ namespace tests {
 		SECTION("perft_position_5") { perft_test(position_5, { 44, 1486, 62379, 2103487, 89941194 }); }
 		SECTION("perft_position_6") { perft_test(position_6, { 46, 2079, 89890, 3894594, 164075551,  6923051137 }); }
 	}
+
+    TEST_CASE("perft_cache") {
+        SECTION("perft_initial") { perft_cache_test(initial, { 20, 400, 8902, 197281, 4865609 }); }
+        SECTION("perft_kiwipete") { perft_cache_test(kiwipete, { 48, 2039, 97862, 4085603, 193690690 }); }
+        SECTION("perft_position_3") { perft_cache_test(position_3, { 14, 191, 2812, 43238, 674624 }); }
+        SECTION("perft_position_4") { perft_cache_test(position_4, { 6, 264, 9467, 422333, 15833292 }); }
+        SECTION("perft_position_5") { perft_cache_test(position_5, { 44, 1486, 62379, 2103487, 89941194 }); }
+        SECTION("perft_position_6") { perft_cache_test(position_6, { 46, 2079, 89890, 3894594, 164075551,  6923051137 }); }
+    }
 }

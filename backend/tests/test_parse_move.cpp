@@ -1,6 +1,6 @@
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 
-#include "../chess.h"
+#include "../chess.hpp"
 #include "../fen.hpp"
 
 using namespace chess;
@@ -8,11 +8,6 @@ using namespace chess;
 
 namespace tests
 {
-    TEST_CASE("san_flipped") {
-        REQUIRE("d4" == chess::san_flipped("d5"));
-
-    }
-
 	TEST_CASE("TestSAN") {
 		SECTION("Initial") {
 		    const auto board = chess::load_FEN<Board>(chess::STARTING_FEN);

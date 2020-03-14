@@ -1,5 +1,5 @@
 #include "tests.hpp"
-#include "catch.hpp"
+#include <catch2/catch.hpp>
 #include <cstdint>
 
 #include "../bitboard.hpp"

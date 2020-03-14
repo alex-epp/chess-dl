@@ -6,7 +6,7 @@
 #include <fcntl.h>
 #include <chrono>
 
-#include "../chess.h"
+#include "../chess.hpp"
 #include "../fen.hpp"
 
 #ifdef _WIN32

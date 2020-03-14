@@ -6,8 +6,7 @@ file(GLOB TESTS_SOURCES
 file(GLOB BACKEND_SOURCES
         CONFIGURE_DEPENDS
         "../*.cpp"
-        "../*.hpp"
-        "../*.h")
+        "../*.hpp")
 
 add_executable(backend_tests ${TESTS_SOURCES} ${BACKEND_SOURCES})
 set_property(TARGET backend_tests PROPERTY CXX_STANDARD 17)

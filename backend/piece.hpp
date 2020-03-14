@@ -1,6 +1,6 @@
 #pragma once
 
-#include "util.hpp"
+#include "../utils/utils.hpp"
 
 #include <cassert>
 #include <string_view>
@@ -37,10 +37,10 @@ namespace chess {
 		constexpr Piece() : m_type(NO_TYPE), m_colour(Colour::WHITE) {}
 		constexpr Piece(Type t, Colour c) : m_type(t), m_colour(c) {}
 		constexpr Piece(char name) : Piece() {
-			auto name_lower = util::tolower(name);
+			auto name_lower = utils::tolower(name);
 			assert(name_lower == 'p' || name_lower == 'n' || name_lower == 'b' || name_lower == 'r' ||
 				name_lower == 'q' || name_lower == 'k');
-			this->m_colour = util::isupper(name) ? Colour::WHITE : Colour::BLACK;
+			this->m_colour = utils::isupper(name) ? Colour::WHITE : Colour::BLACK;
 			switch (name_lower) {
 			case 'p': this->m_type = PAWN; break;
 			case 'n': this->m_type = KNIGHT; break;

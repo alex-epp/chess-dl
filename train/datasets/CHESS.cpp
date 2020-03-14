@@ -125,10 +125,10 @@ CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position,
                 CHESS::BB_to_tensor(position.en_target()),
 
                 torch::tensor({
-                    position.white_king_castling_rights(),
-                    position.white_queen_castling_rights(),
-                    position.black_king_castling_rights(),
-                    position.black_queen_castling_rights()
+                    position.can_king_castle(Colour::WHITE),
+                    position.can_queen_castle(Colour::WHITE),
+                    position.can_king_castle(Colour::BLACK),
+                    position.can_queen_castle(Colour::BLACK)
                 }, torch::dtype(torch::kFloat32))
             });
 
@@ -180,7 +180,6 @@ std::vector<std::pair<Board, Move>> datasets::read_pgn(const std::string& pgn) {
     std::istringstream iss(pgn);
     std::string counter_or_end, move_san;
     auto board = load_FEN<chess::Board>(STARTING_FEN);
-    auto turn = Colour::WHITE;
     for(size_t i = 0; !iss.eof(); ++i) {
         if (i % 3 == 0) {
             iss >> counter_or_end;
@@ -189,11 +188,9 @@ std::vector<std::pair<Board, Move>> datasets::read_pgn(const std::string& pgn) {
             if (move_san == "1-0" || move_san == "0-1" || move_san == "1/2-1/2" || move_san == "*")
                 continue;
 
-            auto move = board.parse_san(move_san, turn);
+            auto move = board.parse_san(move_san);
             v.emplace_back(board, move);
             board.push_move(move);
-            board.flip();
-            turn = Piece::enemy_colour(turn);
         }
     }
     return v;

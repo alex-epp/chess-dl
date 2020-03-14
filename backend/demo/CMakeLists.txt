@@ -6,8 +6,7 @@ file(GLOB DEMO_SOURCES
 file(GLOB BACKEND_SOURCES
         CONFIGURE_DEPENDS
         "../*.cpp"
-        "../*.hpp"
-        "../*.h")
+        "../*.hpp")
 
 add_executable(backend_demo ${DEMO_SOURCES} ${BACKEND_SOURCES})
 set_property(TARGET backend_demo PROPERTY CXX_STANDARD 17)

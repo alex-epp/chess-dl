@@ -1,44 +1,23 @@
-#ifndef CHESS_H
-#define CHESS_H
+#pragma once
 
 #include "bitboard.hpp"
-#include "piece.hpp"
 #include "mailbox.hpp"
 #include "move.hpp"
-#include "coord.hpp"
+#include "piece.hpp"
+#include "square.hpp"
 
-#include <array>
-#include <cassert>
-#include <string_view>
-#include <iostream>
-#include <iterator>
 #include <regex>
 #include <vector>
 
+
 namespace chess {
-    [[nodiscard]] std::string san_flipped(std::string san);
+    class BaseBoard {
+    public:
+        BaseBoard(Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move);
 
-	class BaseBoard;
-	std::wostream& print_board(std::wostream&, const BaseBoard&);
+        void clear();
 
-	template <Colour C>
-	constexpr Rank orient(Rank r);
-	template <>
-	constexpr Rank orient<Colour::WHITE> (Rank r) {
-	    return r;
-	}
-    template <>
-    constexpr Rank orient<Colour::BLACK> (Rank r) {
-        return static_cast<Rank>(7 - static_cast<size_t>(r));
-    }
-
-	class BaseBoard {
-	public:
-		BaseBoard(Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move);
-
-		void clear();
-
-		[[nodiscard]] constexpr BitBoard pieces() const;
+        [[nodiscard]] constexpr BitBoard pieces() const;
         [[nodiscard]] constexpr BitBoard pieces(Colour c) const;
         [[nodiscard]] constexpr BitBoard pieces(Piece::Type p) const;
         [[nodiscard]] constexpr BitBoard pieces(Piece::Type p, Colour c) const;
@@ -65,42 +44,59 @@ namespace chess {
         [[nodiscard]] constexpr bool can_queen_castle(Colour c) const;
         [[nodiscard]] constexpr bool can_king_castle(Colour c) const;
 
-		void inline put_piece(Piece piece, Square square);
-		void inline remove_piece(Square square);
+        void inline put_piece(Piece piece, Square square);
+        void inline remove_piece(Square square);
 
-		[[nodiscard]] std::string fen() const;
+        [[nodiscard]] std::string fen() const;
 
-	protected:
-		// Bitboards stored with little-endian-rank-file-mapping
-		std::array<BitBoard, 8> piece_BB;
+        [[nodiscard]] constexpr Colour get_turn() const { return this->turn; }
 
-		// Mailbox stored with least-significant-file-mapping
-		Mailbox piece_mailbox;
+    protected:
+        // Bitboards stored with little-endian-rank-file-mapping
+        std::array<BitBoard, 8> piece_BB;
 
-		// Square behind the pawn that just made a two-square move.
-		// If no such pawn exists, set to UINT_MAX
-		Square en_passant_target;
+        // Mailbox stored with least-significant-file-mapping
+        Mailbox piece_mailbox;
 
-		// Castling rights
-		std::array<bool, 2> king_castling_rights;
+        // Square behind the pawn that just made a two-square move.
+        // If no such pawn exists, set to UINT_MAX
+        Square en_passant_target;
+
+        // Castling rights
+        std::array<bool, 2> king_castling_rights;
         std::array<bool, 2> queen_castling_rights;
-		size_t halfmove_clock, fullmove_clock;
+        size_t halfmove_clock, fullmove_clock;
         Colour turn;
     };
-	inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
+
+    inline std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
+        for (int ri = 7; ri >= 0; --ri) {
+            for (int fi = 0; fi < 8; ++fi) {
+                auto r = static_cast<Rank>(ri);
+                auto f = static_cast<File>(fi);
+                auto piece = board.get_piece_at(Square(f, r));
+
+                stream << piece_repr(piece);
+            }
+            stream << '\n';
+        }
+        return stream;
+    }
+
+    inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
         return print_board(stream, board);
     }
 
-	class Board : public BaseBoard {
-	public:
-		Board(Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move);
+    class Board : public BaseBoard {
+    public:
+        Board(Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move);
 
         [[nodiscard]] Move parse_uci(const std::string& uci) const;
         [[nodiscard]] Move parse_san(const std::string& san) const;
         [[nodiscard]] Move parse_move(Square from, Square to, Piece::Type promo_type = Piece::NO_TYPE) const;
 
-		void push_uci(const std::string& uci);
-		void push_san(const std::string& san);
+        void push_uci(const std::string& uci);
+        void push_san(const std::string& san);
         void push_move(Square from, Square to, Piece::Type promo_type = Piece::NO_TYPE);
         void push_move(const Move& move);
 
@@ -115,20 +111,18 @@ namespace chess {
         [[nodiscard]] inline bool is_draw_50_move() const;
         [[nodiscard]] inline bool is_draw_insufficient_material() const;
 
-        size_t perft(size_t depth);
-
-	private:
+    private:
         template <Colour TurnColour>
         [[nodiscard]] Move parse_san(const std::string& san) const;
 
-	    template <Colour TurnColour>
-	    void push_move(const Move& m);
+        template <Colour TurnColour>
+        void push_move(const Move& m);
 
-	    template <Colour TurnColour>
+        template <Colour TurnColour>
         void legal_moves(std::vector<Move>& moves) const;
 
-	    template <Colour TurnColour>
-		void get_pawn_moves(std::vector<Move>& moves) const;
+        template <Colour TurnColour>
+        void get_pawn_moves(std::vector<Move>& moves) const;
         template <Colour TurnColour>
         void get_knight_moves(std::vector<Move>& moves) const;
         template <Colour TurnColour>
@@ -146,23 +140,27 @@ namespace chess {
         [[nodiscard]] bool is_in_check() const;
 
         template <Colour TurnColour>
-		void add_pseudo_legal_pawn_move(std::vector<Move>& moves, Square from, Square to, unsigned int flags) const;
+        void add_pseudo_legal_pawn_move(std::vector<Move>& moves, Square from, Square to, unsigned int flags) const;
         template <Colour TurnColour>
         void add_pseudo_legal_move(std::vector<Move>& moves, Square from, Square to, unsigned int flags) const;
 
-		[[nodiscard]] BitBoard knight_attacks(BitBoard knights) const;
-		[[nodiscard]] BitBoard bishop_attacks(BitBoard bishops, BitBoard empty) const;
-		[[nodiscard]] BitBoard rook_attacks(BitBoard rooks, BitBoard empty) const;
-		[[nodiscard]] BitBoard queen_attacks(BitBoard queens, BitBoard empty) const;
-		[[nodiscard]] BitBoard king_attacks(BitBoard kings) const;
+        [[nodiscard]] BitBoard knight_attacks(BitBoard knights) const;
+        [[nodiscard]] BitBoard bishop_attacks(BitBoard bishops, BitBoard empty) const;
+        [[nodiscard]] BitBoard rook_attacks(BitBoard rooks, BitBoard empty) const;
+        [[nodiscard]] BitBoard queen_attacks(BitBoard queens, BitBoard empty) const;
+        [[nodiscard]] BitBoard king_attacks(BitBoard kings) const;
 
-		[[nodiscard]] inline bool move_in_check(const Move& move) const;
+        [[nodiscard]] inline bool move_in_check(const Move& move) const;
 
-        size_t perft(size_t depth, std::vector<std::vector<Move>>& storage);
 
-		void check_bb_mailbox_sync() const;
-	};
 
+        void check_bb_mailbox_sync() const;
+    };
+}
+
+
+
+namespace chess {
     constexpr BitBoard BaseBoard::pieces() const {
         return this->piece_BB[static_cast<size_t>(Colour::WHITE)] |
                this->piece_BB[static_cast<size_t>(Colour::BLACK)];
@@ -478,13 +476,13 @@ namespace chess {
         }
 
         if (this->can_king_castle(TurnColour) &&
-                (attacks & (BB::E1 | BB::F1 | BB::G1).orient(TurnColour)).empty() &&
-                (this->pieces() & (BB::F1 | BB::G1).orient(TurnColour)).empty()) {
+            (attacks & (BB::E1 | BB::F1 | BB::G1).orient(TurnColour)).empty() &&
+            (this->pieces() & (BB::F1 | BB::G1).orient(TurnColour)).empty()) {
             this->add_pseudo_legal_move<TurnColour>(moves, S::E1.orient(TurnColour), S::G1.orient(TurnColour), Move::K_CASTLE);
         }
         if (this->can_queen_castle(TurnColour) &&
-                (attacks & (BB::E1 | BB::D1 | BB::C1).orient(TurnColour)).empty() &&
-                (this->pieces() & (BB::D1 | BB::C1 | BB::B1).orient(TurnColour)).empty()) {
+            (attacks & (BB::E1 | BB::D1 | BB::C1).orient(TurnColour)).empty() &&
+            (this->pieces() & (BB::D1 | BB::C1 | BB::B1).orient(TurnColour)).empty()) {
             this->add_pseudo_legal_move<TurnColour>(moves, S::E1.orient(TurnColour), S::C1.orient(TurnColour), Move::Q_CASTLE);
         }
     }
@@ -555,8 +553,8 @@ namespace chess {
         return matched_move;
     }
 
-	template <Colour TurnColour>
-	void Board::push_move(const Move& move) {
+    template <Colour TurnColour>
+    void Board::push_move(const Move& move) {
         assert(this->is_piece_at(move.from()));
         assert(this->piece_mailbox.get(move.from()).colour() == TurnColour);
         if (this->is_piece_at(move.to()))
@@ -666,7 +664,7 @@ namespace chess {
         if (this->en_passant_target.get() != Square::EMPTY)
             assert(this->en_passant_target.rank() == orient<TurnColour>(Rank::R3));
         this->check_bb_mailbox_sync();
-	}
+    }
 
     template <Colour TurnColour>
     void Board::legal_moves(std::vector<Move>& moves) const {
@@ -678,6 +676,4 @@ namespace chess {
         this->get_queen_moves<TurnColour>(moves);
         this->get_king_moves<TurnColour>(moves);
     }
-} 
-
-#endif
+}

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../backend/chess.h"
+#include "../backend/chess.hpp"
 
 #include <optional>
 

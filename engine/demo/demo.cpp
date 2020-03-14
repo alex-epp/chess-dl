@@ -1,5 +1,5 @@
-#include "../eval.hpp"
-#include "../random_engine.hpp"
+#include "engine/eval.hpp"
+#include "engine/random_engine.hpp"
 
 #include <random>
 #include <iostream>

@@ -1,25 +1,10 @@
-#include "chess.h"
-
-
-#include <iostream>
-#include <map>
-#include <string_view>
+#include "board.hpp"
 
 
 namespace chess {
-    std::string san_flipped(std::string san) {
-        for (char& ch : san) {
-            if (isdigit(ch)) {
-                int d = ch - '0';
-                d = 9 - d; // Convert from [1, 8] to [8, 1]
-                ch = '0' + d;
-            }
-        }
-        return san;
-    }
 
     BaseBoard::BaseBoard(Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
-                : en_passant_target(en_passant_target), halfmove_clock(half_move), fullmove_clock(full_move), turn(turn)
+            : en_passant_target(en_passant_target), halfmove_clock(half_move), fullmove_clock(full_move), turn(turn)
     {
         this->set_king_castle(Colour::WHITE, castle_rights.find_first_of('K') != std::string::npos);
         this->set_king_castle(Colour::BLACK, castle_rights.find_first_of('k') != std::string::npos);
@@ -92,20 +77,6 @@ namespace chess {
         fen += " " + std::to_string(this->fullmove_clock);
 
         return fen;
-    }
-
-    std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
-        for (int ri = 7; ri >= 0; --ri) {
-            for (int fi = 0; fi < 8; ++fi) {
-                auto r = static_cast<Rank>(ri);
-                auto f = static_cast<File>(fi);
-                auto piece = board.get_piece_at(Square(f, r));
-
-                stream << piece_repr(piece);
-            }
-            stream << '\n';
-        }
-        return stream;
     }
 
     Board::Board(Colour turn, std::string_view castle_rights, Square en_passant_target, unsigned int half_move, unsigned int full_move)
@@ -212,11 +183,6 @@ namespace chess {
         return moves;
     }
 
-    size_t Board::perft(size_t depth) {
-        std::vector<std::vector<Move>> storage(depth, std::vector<Move>());
-        return this->perft(depth, storage);
-    }
-
     BitBoard Board::knight_attacks(const BitBoard knights) const {
         auto w1 = knights.shift_W();
         auto w2 = knights.shift_W(2);
@@ -242,23 +208,6 @@ namespace chess {
                | kings.shift_S() | kings.shift_SW() | kings.shift_W() | kings.shift_NW();
     }
 
-    size_t Board::perft(size_t depth, std::vector<std::vector<Move>>& storage) {
-        if (depth == 0) return 1;
-
-        auto& moves = storage[depth-1];
-        this->legal_moves(moves);
-
-        if (depth == 1) return moves.size();
-
-        size_t nodes = 0;
-        for (auto& move : moves) {
-            Board b = *this;
-            b.push_move(move);
-            nodes += b.perft(depth - 1, storage);
-        }
-        return nodes;
-    }
-
     void Board::check_bb_mailbox_sync() const {
         for (int i = 0; i < 64; ++i) {
             auto piece = this->piece_mailbox.get(i);
@@ -279,4 +228,5 @@ namespace chess {
             }
         }
     }
+
 }
