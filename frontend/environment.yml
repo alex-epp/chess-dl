@@ -1,9 +1,0 @@
-name: chess
-dependencies:
-  - python=3.6
-  - numpy
-  - numba
-  - tqdm
-  - pip:
-    - python-chess
-    - pygame

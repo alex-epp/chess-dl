@@ -1,4 +1,0 @@
-python-chess
-pygame
-numpy
-tqdm
