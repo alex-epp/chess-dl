@@ -2,7 +2,7 @@
 #include <catch2/catch.hpp>
 #include <cstdint>
 
-#include "../bitboard.hpp"
+#include "backend/chess.hpp"
 
 using namespace chess;
 

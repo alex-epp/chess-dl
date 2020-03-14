@@ -4,7 +4,7 @@
 #include <sstream>
 #include <string>
 
-#include "../bitboard.hpp"
+#include "backend/chess.hpp"
 
 namespace Catch {
     template<>

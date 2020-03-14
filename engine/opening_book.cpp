@@ -1,8 +1,5 @@
 #include "opening_book.hpp"
 
-#include "../utils/utils.hpp"
-
-
 namespace engine {
 
     MMappedOpeningBook::MMappedOpeningBook(const fs::path& path) : mmap(path.string()) {}

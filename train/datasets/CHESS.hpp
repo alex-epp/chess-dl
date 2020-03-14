@@ -1,8 +1,6 @@
-//
-// Created by aepp2 on 3/6/2020.
-//
-
 #pragma once
+
+#include "backend/chess.hpp"
 
 #include <fstream>
 #include <filesystem>
@@ -11,8 +9,6 @@
 #include <torch/data/datasets/base.h>
 #include <torch/data/example.h>
 #include <torch/types.h>
-
-#include "../../backend/chess.hpp"
 
 
 namespace chess::datasets {

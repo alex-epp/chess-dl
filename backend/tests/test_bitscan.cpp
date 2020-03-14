@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <limits>
 
-#include "../bitscan.hpp"
+#include "backend/bitscan.hpp"
 
 namespace tests
 {

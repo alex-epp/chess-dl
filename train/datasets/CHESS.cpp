@@ -3,7 +3,7 @@
 //
 
 #include "CHESS.hpp"
-#include "../../backend/fen.hpp"
+#include "backend/fen.hpp"
 
 #include <algorithm>
 #include <chrono>

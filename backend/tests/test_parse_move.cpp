@@ -1,7 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include "../chess.hpp"
-#include "../fen.hpp"
+#include "backend/chess.hpp"
 
 using namespace chess;
 

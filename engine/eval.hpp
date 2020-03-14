@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine.hpp"
-#include "../backend/fen.hpp"
+#include "backend/chess.hpp"
 
 #include <string_view>
 

@@ -3,11 +3,9 @@
 
 #include <algorithm>
 #include <iostream>
-#include <fcntl.h>
 #include <chrono>
 
-#include "../chess.hpp"
-#include "../fen.hpp"
+#include "backend/chess.hpp"
 
 #ifdef _WIN32
     #include <Windows.h>

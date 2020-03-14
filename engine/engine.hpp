@@ -2,11 +2,11 @@
 
 #include "opening_book.hpp"
 #include "endgame_table.hpp"
+#include "backend/chess.hpp"
 
 #include <filesystem>
 #include <memory>
 
-#include "../backend/chess.hpp"
 
 namespace engine {
 

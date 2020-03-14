@@ -1,10 +1,11 @@
+#include "datasets/CHESS.hpp"
+
 #include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <torch/torch.h>
 #include <filesystem>
 
-#include "datasets/CHESS.hpp"
 
 using namespace torch::data;
 namespace fs = std::filesystem;

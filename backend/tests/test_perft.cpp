@@ -2,8 +2,7 @@
 #include <cstdint>
 #include <sstream>
 
-#include "../chess.hpp"
-#include "../fen.hpp"
+#include "backend/chess.hpp"
 
 namespace tests {
 	constexpr auto initial = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
