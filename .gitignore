@@ -1,3 +1,6 @@
+# Assets folder
+assets
+
 # ssh private keys
 *.pem
 
