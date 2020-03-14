@@ -1,5 +1,6 @@
 #include "engine/eval.hpp"
 #include "engine/random_engine.hpp"
+#include "engine/opening_book.hpp"
 
 #include <random>
 #include <iostream>
@@ -15,8 +16,9 @@ std::ostream& operator << (std::ostream& o, const EvalResult& e) {
 
 int main(int argc, char** argv) {
     std::mt19937 random(0);
-    auto engine = make_random_engine(random);
-    auto opponent = make_random_engine(random);
+    auto opening_book = std::make_shared<MMappedOpeningBook>("../../../assets/gm2001.bin");
+    auto engine = make_random_engine(random, opening_book);
+    auto opponent = make_random_engine(random, opening_book);
 
     auto start_time = std::chrono::system_clock::now();
     auto result = engine::eval(engine, opponent, 100);
