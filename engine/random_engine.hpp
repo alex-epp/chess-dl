@@ -11,8 +11,8 @@ namespace engine {
     class RandomEngine : public Engine {
     public:
         explicit RandomEngine(Random& random,
-                              std::unique_ptr<OpeningBook> opening_book = nullptr,
-                              std::unique_ptr<EndgameTable> endgame_table = nullptr);
+                              std::shared_ptr<OpeningBook> opening_book = nullptr,
+                              std::shared_ptr<EndgameTable> endgame_table = nullptr);
     protected:
         chess::Move move_impl(const chess::Board& board) override;
     private:
@@ -28,8 +28,8 @@ namespace engine {
     template<typename Random>
     RandomEngine<Random>::RandomEngine(
             Random& random,
-            std::unique_ptr<OpeningBook> opening_book,
-            std::unique_ptr<EndgameTable> endgame_table)
+            std::shared_ptr<OpeningBook> opening_book,
+            std::shared_ptr<EndgameTable> endgame_table)
             : Engine(std::move(opening_book), std::move(endgame_table)),
               random(random) {}
 

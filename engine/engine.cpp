@@ -1,8 +1,10 @@
 #include "engine.hpp"
 
+#include <utility>
+
 namespace engine {
 
-    Engine::Engine(std::unique_ptr<OpeningBook> opening_book, std::unique_ptr<EndgameTable> endgame_table)
+    Engine::Engine(std::shared_ptr<OpeningBook> opening_book, std::shared_ptr<EndgameTable> endgame_table)
             : opening_book(std::move(opening_book)), endgame_table(std::move(endgame_table)) {}
 
     chess::Move Engine::move(const chess::Board& board) {

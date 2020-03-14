@@ -12,8 +12,8 @@ namespace engine {
 
     class Engine {
     public:
-        Engine(std::unique_ptr<OpeningBook> opening_book = nullptr,
-               std::unique_ptr<EndgameTable> endgame_table = nullptr);
+        Engine(std::shared_ptr<OpeningBook> opening_book = nullptr,
+               std::shared_ptr<EndgameTable> endgame_table = nullptr);
 
         virtual chess::Move move(const chess::Board& board);
 
@@ -21,8 +21,8 @@ namespace engine {
         virtual chess::Move move_impl(const chess::Board& board) = 0;
 
     private:
-        std::unique_ptr<OpeningBook> opening_book;
-        std::unique_ptr<EndgameTable> endgame_table;
+        std::shared_ptr<OpeningBook> opening_book;
+        std::shared_ptr<EndgameTable> endgame_table;
     };
 
 }
