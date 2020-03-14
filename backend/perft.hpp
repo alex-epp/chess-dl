@@ -15,4 +15,11 @@ namespace chess {
                  size_t depth,
                  std::vector<std::vector<Move>>& storage);
 
+    size_t perft_cache(const Board& board, size_t depth);
+
+    size_t perft_cache(const Board& board,
+                       size_t depth,
+                       std::vector<std::vector<Move>>& storage,
+                       ZobristHasher& hasher,
+                       std::map<std::pair<ZobristHasher::Hash, size_t>, size_t>& cache);
 }

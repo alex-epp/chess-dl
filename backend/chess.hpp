@@ -10,3 +10,4 @@
 #include "perft.hpp"
 #include "piece.hpp"
 #include "square.hpp"
+#include "zobrist_hash.hpp"
