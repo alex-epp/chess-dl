@@ -416,12 +416,12 @@ namespace chess {
     }
     template <Colour TurnColour>
     void Board::get_bishop_moves(std::vector<Move>& moves) const {
-        for (const auto from_position : this->bishops(TurnColour)) {
+        for (auto from_position : this->bishops(TurnColour)) {
             assert(this->get_piece_at(from_position).colour() == TurnColour);
             assert(this->get_piece_at(from_position).type() == Piece::BISHOP);
-            auto position_bb = BitBoard(from_position);
-            auto move_bb = this->bishop_attacks(position_bb, ~this->pieces()) & ~this->pieces(TurnColour);
-            for (const auto to_position : move_bb) {
+            auto bishop_attacks = PEXT_ATTACKS.bishop_attacks(from_position, this->pieces());
+            auto to_bb = bishop_attacks & ~this->pieces(TurnColour);
+            for (const auto to_position : to_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
                 auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
@@ -430,11 +430,12 @@ namespace chess {
     }
     template <Colour TurnColour>
     void Board::get_rook_moves(std::vector<Move>& moves) const {
-        for (const auto from_position : this->rooks(TurnColour)) {
+        for (auto from_position : this->rooks(TurnColour)) {
             assert(this->get_piece_at(from_position).colour() == TurnColour);
             assert(this->get_piece_at(from_position).type() == Piece::ROOK);
-            auto move_bb = this->rook_attacks(BitBoard(from_position), ~this->pieces()) & ~this->pieces(TurnColour);
-            for (const auto to_position : move_bb) {
+            auto rook_attacks = PEXT_ATTACKS.rook_attacks(from_position, this->pieces());
+            auto to_bb = rook_attacks & ~this->pieces(TurnColour);
+            for (auto to_position : to_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
                 auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
@@ -446,8 +447,10 @@ namespace chess {
         for (const auto from_position : this->queens(TurnColour)) {
             assert(this->get_piece_at(from_position).colour() == TurnColour);
             assert(this->get_piece_at(from_position).type() == Piece::QUEEN);
-            auto move_bb = this->queen_attacks(BitBoard(from_position), ~this->pieces()) & ~this->pieces(TurnColour);
-            for (const auto to_position : move_bb) {
+            auto queen_attacks = PEXT_ATTACKS.rook_attacks(from_position, this->pieces()) |
+                                 PEXT_ATTACKS.bishop_attacks(from_position, this->pieces());
+            auto to_bb = queen_attacks & ~this->pieces(TurnColour);
+            for (auto to_position : to_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
                 auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
