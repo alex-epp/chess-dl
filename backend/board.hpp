@@ -298,10 +298,18 @@ namespace chess {
     bool Board::is_in_check() const {
         constexpr auto EnemyColour = Piece::enemy_colour(TurnColour);
 
-        const auto empty = ~this->pieces();
-        auto attacks = this->bishop_attacks(this->bishops(EnemyColour) | this->queens(EnemyColour), empty)
-                       | this->rook_attacks(this->rooks(EnemyColour) | this->queens(EnemyColour), empty)
-                       | this->knight_attacks(this->knights(EnemyColour))
+        auto king_square = this->kings(TurnColour).first();
+
+        if (!(PEXT_ATTACKS.bishop_attacks(king_square, this->pieces()) &
+             (this->bishops(EnemyColour) | this->queens(EnemyColour))).empty())
+            return true;
+
+        if (!(PEXT_ATTACKS.rook_attacks(king_square, this->pieces()) &
+              (this->rooks(EnemyColour) | this->queens(EnemyColour))).empty())
+            return true;
+
+        auto attacks = this->knight_attacks(this->knights(EnemyColour))
+                       | this->king_attacks(this->kings(EnemyColour))
                        | this->pawns(EnemyColour).shift_NE(EnemyColour)
                        | this->pawns(EnemyColour).shift_NW(EnemyColour);
         return !(this->kings(TurnColour) & attacks).empty();
