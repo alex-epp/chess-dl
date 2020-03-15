@@ -55,9 +55,6 @@ namespace chess {
         // Bitboards stored with little-endian-rank-file-mapping
         std::array<BitBoard, 8> piece_BB;
 
-        // Mailbox stored with least-significant-file-mapping
-        Mailbox piece_mailbox;
-
         // Square behind the pawn that just made a two-square move.
         // If no such pawn exists, set to UINT_MAX
         Square en_passant_target;
@@ -219,12 +216,10 @@ namespace chess {
         this->remove_piece(square);
         this->piece_BB[piece.type()] |= square;
         this->piece_BB[static_cast<size_t>(piece.colour())] |= square;
-        this->piece_mailbox.set(square, piece);
     }
     inline void BaseBoard::remove_piece(Square square) {
         for (int i = 0; i < 8; ++i)
             this->piece_BB[i] &= ~BitBoard(square);
-        this->piece_mailbox.clear(square);
 
         for (int i = 0; i < 8; ++i)
             assert(!this->piece_BB[i].is_piece_at(square));
@@ -245,10 +240,22 @@ namespace chess {
     }
 
     constexpr bool BaseBoard::is_piece_at(Square square) const {
-        return this->piece_mailbox.is_piece_at(square);
+        for (auto& bb : this->piece_BB)
+            if (bb.is_piece_at(square))
+                return true;
+        return false;
     }
     constexpr Piece BaseBoard::get_piece_at(Square square) const {
-        return this->piece_mailbox.get(square);
+        for (size_t c = 0; c < 2; ++c) {
+            if (!this->piece_BB[c].is_piece_at(square))
+                continue;
+
+            for (size_t t = 2; t < 8; ++t) {
+                if (this->piece_BB[t].is_piece_at(square))
+                    return Piece(static_cast<Piece::Type>(t), static_cast<Colour>(c));
+            }
+        }
+        return Piece();
     }
 
     bool Board::is_check() const {
@@ -408,7 +415,7 @@ namespace chess {
             auto move_bb = this->knight_attacks(BitBoard(from_position)) & ~this->pieces(TurnColour);
             for (const auto to_position : move_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
-                auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
+                auto flags = this->pieces(Piece::enemy_colour(TurnColour)).is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
             }
         }
@@ -422,7 +429,7 @@ namespace chess {
             auto move_bb = this->bishop_attacks(position_bb, ~this->pieces()) & ~this->pieces(TurnColour);
             for (const auto to_position : move_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
-                auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
+                auto flags = this->pieces(Piece::enemy_colour(TurnColour)).is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
             }
         }
@@ -435,7 +442,7 @@ namespace chess {
             auto move_bb = this->rook_attacks(BitBoard(from_position), ~this->pieces()) & ~this->pieces(TurnColour);
             for (const auto to_position : move_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
-                auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
+                auto flags = this->pieces(Piece::enemy_colour(TurnColour)).is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
             }
         }
@@ -448,7 +455,7 @@ namespace chess {
             auto move_bb = this->queen_attacks(BitBoard(from_position), ~this->pieces()) & ~this->pieces(TurnColour);
             for (const auto to_position : move_bb) {
                 assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == Piece::enemy_colour(TurnColour));
-                auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
+                auto flags = this->pieces(Piece::enemy_colour(TurnColour)).is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
                 this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
             }
         }
@@ -471,7 +478,7 @@ namespace chess {
 
         for (const auto to_position : move_bb) {
             assert(!this->is_piece_at(to_position) || this->get_piece_at(to_position).colour() == EnemyColour);
-            auto flags = this->piece_mailbox.is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
+            auto flags = this->pieces(Piece::enemy_colour(TurnColour)).is_piece_at(to_position) ? Move::CAPTURE : Move::QUIET;
             this->add_pseudo_legal_move<TurnColour>(moves, from_position, to_position, flags);
         }
 
@@ -559,17 +566,17 @@ namespace chess {
         assert(this->piece_mailbox.get(move.from()).colour() == TurnColour);
         if (this->is_piece_at(move.to()))
             assert(this->piece_mailbox.get(move.to()).colour() == Piece::enemy_colour<TurnColour>());
-        auto type = this->piece_mailbox.get(move.from()).type();
+        auto type = this->get_piece_at(move.from()).type();
         if (!this->en_passant_target.is_empty())
             assert(this->en_passant_target.rank() == orient<TurnColour>(Rank::R6));
 
         auto from_BB = BitBoard(move.from());
         auto to_BB = BitBoard(move.to());
         auto from_to_BB = from_BB ^ to_BB;
-        auto piece = this->piece_mailbox.get(move.from());
+        auto piece = this->get_piece_at(move.from());
 
         auto captured_index = move.is_en_capture() ? move.to().backward(TurnColour) : move.to();
-        auto captured_piece = this->piece_mailbox.get(captured_index);
+        auto captured_piece = this->get_piece_at(captured_index);
         auto captured_BB = BitBoard(captured_index);
 
         this->en_passant_target = Square::EMPTY;
@@ -579,7 +586,6 @@ namespace chess {
                 assert(this->is_piece_at(captured_index));
                 assert(this->get_piece_at(captured_index).colour() == Piece::enemy_colour<TurnColour>());
             }
-            this->piece_mailbox.clear(captured_index);
             this->piece_BB[captured_piece.type()] ^= captured_BB;
             this->piece_BB[static_cast<size_t>(captured_piece.colour())] ^= captured_BB;
 
@@ -591,13 +597,10 @@ namespace chess {
             }
         }
 
-        this->piece_mailbox.clear(move.from());
-        this->piece_mailbox.set(move.to(), piece);
         this->piece_BB[piece.type()] ^= from_to_BB;
         this->piece_BB[static_cast<size_t>(piece.colour())] ^= from_to_BB;
 
         if (move.is_promotion()) {
-            this->piece_mailbox.set(move.to(), Piece(move.promoted_type(), piece.colour()));
             this->piece_BB[piece.type()] ^= to_BB;
             this->piece_BB[move.promoted_type()] ^= to_BB;
         }
@@ -623,8 +626,6 @@ namespace chess {
             auto rook_from_to_BB = BitBoard(rook_from) ^ BitBoard(rook_to);
             this->piece_BB[static_cast<size_t>(piece.colour())] ^= rook_from_to_BB;
             this->piece_BB[Piece::ROOK] ^= rook_from_to_BB;
-            this->piece_mailbox.set(rook_to, this->piece_mailbox.get(rook_from));
-            this->piece_mailbox.clear(rook_from);
         }
 
         if (piece.type() == Piece::ROOK) {

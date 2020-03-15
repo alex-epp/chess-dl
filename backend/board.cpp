@@ -15,7 +15,6 @@ namespace chess {
     void BaseBoard::clear() {
         for (int i = 0; i < 8; ++i)
             this->piece_BB[i] = 0;
-        this->piece_mailbox.clear();
         this->en_passant_target = Square();
 
         for(int i = 0; i < 8; ++i)
@@ -104,12 +103,12 @@ namespace chess {
             return this->parse_san<Colour::BLACK>(san);
     }
     Move Board::parse_move(Square from, Square to, Piece::Type promo_type) const {
-        auto piece = this->piece_mailbox.get(from);
+        auto piece = this->get_piece_at(from);
         auto flags = Move::QUIET;
 
         assert(piece.type() != Piece::NO_TYPE);
         assert(piece.colour() == Colour::WHITE);
-        if (piece_mailbox.is_piece_at(to))
+        if (this->is_piece_at(to))
             assert(piece_mailbox.get(to).colour() == Colour::BLACK);
 
         if (piece.type() == Piece::PAWN) {
@@ -133,7 +132,7 @@ namespace chess {
             }
         }
 
-        if (this->piece_mailbox.is_piece_at(to)) {
+        if (this->is_piece_at(to)) {
             flags |= Move::CAPTURE;
         }
 
@@ -210,7 +209,7 @@ namespace chess {
 
     void Board::check_bb_mailbox_sync() const {
         for (int i = 0; i < 64; ++i) {
-            auto piece = this->piece_mailbox.get(i);
+            auto piece = this->get_piece_at(i);
             if (piece.type() != Piece::NO_TYPE) {
                 assert(this->piece_BB[static_cast<size_t>(piece.colour())].is_piece_at(i));
                 assert(!this->piece_BB[static_cast<size_t>(Piece::enemy_colour(piece.colour()))].is_piece_at(i));
