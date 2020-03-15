@@ -66,7 +66,7 @@ namespace chess {
         Colour turn;
     };
 
-    inline std::wostream& print_board(std::wostream& stream, const BaseBoard& board) {
+    inline std::ostream& print_board(std::ostream& stream, const BaseBoard& board) {
         for (int ri = 7; ri >= 0; --ri) {
             for (int fi = 0; fi < 8; ++fi) {
                 auto r = static_cast<Rank>(ri);
@@ -80,7 +80,7 @@ namespace chess {
         return stream;
     }
 
-    inline std::wostream& operator << (std::wostream& stream, const BaseBoard& board) {
+    inline std::ostream& operator << (std::ostream& stream, const BaseBoard& board) {
         return print_board(stream, board);
     }
 
