@@ -19,8 +19,6 @@ namespace chess {
 
         for(int i = 0; i < 8; ++i)
             assert(this->piece_BB[i].empty());
-        for(int i = 0; i < 64; ++i)
-            assert(this->piece_mailbox.get(i).type() == Piece::NO_TYPE);
         assert(this->en_passant_target == Square::EMPTY);
     }
 
@@ -109,7 +107,7 @@ namespace chess {
         assert(piece.type() != Piece::NO_TYPE);
         assert(piece.colour() == Colour::WHITE);
         if (this->is_piece_at(to))
-            assert(piece_mailbox.get(to).colour() == Colour::BLACK);
+            assert(this->get_piece_at(to).colour() == Colour::BLACK);
 
         if (piece.type() == Piece::PAWN) {
             if ((from.rank() == Rank::R2 && to.rank() == Rank::R4) ||
@@ -207,7 +205,7 @@ namespace chess {
                | kings.shift_S() | kings.shift_SW() | kings.shift_W() | kings.shift_NW();
     }
 
-    void Board::check_bb_mailbox_sync() const {
+    void Board::check_bb_sync() const {
         for (int i = 0; i < 64; ++i) {
             auto piece = this->get_piece_at(i);
             if (piece.type() != Piece::NO_TYPE) {

@@ -20,13 +20,15 @@ int main(int argc, char** argv) {
     auto engine = make_random_engine(random, opening_book);
     auto opponent = make_random_engine(random, opening_book);
 
+    const size_t trials = 100;
+
     auto start_time = std::chrono::system_clock::now();
-    auto result = engine::eval(engine, opponent, 100);
+    auto result = engine::eval(engine, opponent, trials);
     auto end_time = std::chrono::system_clock::now();
 
     std::cout << result << std::endl;
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
-    std::cout << "Took: " << duration.count() << " ms." << std::endl;
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time);
+    std::cout << "Took: " << duration.count() / 1000 << " ms [" << duration.count() / trials << " us/trial]." << std::endl;
 
     return EXIT_SUCCESS;
 }

@@ -68,34 +68,34 @@ namespace chess {
 		Colour m_colour;
 	};
 
-	constexpr std::wstring_view piece_repr(const Piece& piece) {
+	constexpr std::string_view piece_repr(const Piece& piece) {
 		if (piece == Piece('P'))
-			return L"\u2659";
+			return u8"\u2659";
 		else if (piece == Piece('N'))
-			return L"\u2658";
+			return u8"\u2658";
 		else if (piece == Piece('B'))
-			return L"\u2657";
+			return u8"\u2657";
 		else if (piece == Piece('R'))
-			return L"\u2656";
+			return u8"\u2656";
 		else if (piece == Piece('Q'))
-			return L"\u2655";
+			return u8"\u2655";
 		else if (piece == Piece('K'))
-			return L"\u2654";
+			return u8"\u2654";
 
 		else if (piece == Piece('p'))
-			return L"\u265F";
+			return u8"\u265F";
 		else if (piece == Piece('n'))
-			return L"\u265E";
+			return u8"\u265E";
 		else if (piece == Piece('b'))
-			return L"\u265D";
+			return u8"\u265D";
 		else if (piece == Piece('r'))
-			return L"\u265C";
+			return u8"\u265C";
 		else if (piece == Piece('q'))
-			return L"\u265B";
+			return u8"\u265B";
 		else if (piece == Piece('k'))
-			return L"\u265A";
+			return u8"\u265A";
 
 		else
-			return L"\u2610";
+			return u8"\u2610";
 	}
 }

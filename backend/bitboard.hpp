@@ -16,13 +16,12 @@
 
 namespace chess {
 	class BitBoard;
-
 	class BitBoardBitScanIterator {
 	public:
 		constexpr static unsigned int END = bitscan::END;
 
 	public:
-		BitBoardBitScanIterator(const BitBoard*);
+		explicit BitBoardBitScanIterator(const BitBoard*);
 		BitBoardBitScanIterator& operator ++ ();
 		bool operator != (unsigned int) const;
 		Square operator * () const;
@@ -31,6 +30,19 @@ namespace chess {
 		const BitBoard* bb;
 		Square square;
 	};
+
+
+	class BitBoardSubsetsIterator;
+	class BitBoardSubsets {
+	public:
+	    class END {};
+
+        explicit inline BitBoardSubsets(const BitBoard*);
+        inline BitBoardSubsetsIterator begin() const;
+        inline END end() const;
+	private:
+	    const BitBoard* bb;
+    };
 
 	/*
 	Stores a board position represented as a bitboard
@@ -80,6 +92,9 @@ namespace chess {
 	public: // range-based iteration
         [[nodiscard]] inline auto begin() const { return BitBoardBitScanIterator(this); }
         [[nodiscard]] inline auto end() const { return BitBoardBitScanIterator::END; }
+
+	public: // subsets
+	    [[nodiscard]] inline auto subsets() const { return BitBoardSubsets(this); }
 
 	public: // Operations we can perform on bitboards
 		[[nodiscard]] constexpr BitBoard shift_N() const {
@@ -292,12 +307,29 @@ namespace chess {
 		constexpr BitBoard operator ~ () const {
 			return ~this->bb;
 		}
+		constexpr BitBoard operator - (const BitBoard rhs) {
+	        return this->bb - rhs.bb;
+	    }
+
+
 
 	public:
 		std::uint64_t bb;
 
 		friend class BitBoardBitScanIterator;
 	};
+
+    class BitBoardSubsetsIterator {
+    public:
+        inline BitBoardSubsetsIterator& operator ++ ();
+        [[nodiscard]] inline bool operator != (BitBoardSubsets::END) const;
+        [[nodiscard]] inline BitBoard operator * () const;
+        explicit inline BitBoardSubsetsIterator(const BitBoard*);
+    private:
+        const BitBoard* bb;
+        BitBoard n;
+        size_t i;
+    };
 
 	/*
 	Helpful predefined bitboards
@@ -329,6 +361,26 @@ namespace chess {
 			stream << std::endl;
 		}
 		return stream;
+	}
+
+	BitBoardSubsets::BitBoardSubsets(const BitBoard* bb) : bb(bb) {}
+	BitBoardSubsetsIterator BitBoardSubsets::begin() const {
+	    return BitBoardSubsetsIterator(this->bb);
+	}
+	BitBoardSubsets::END BitBoardSubsets::end() const {
+	    return END{};
+	}
+	BitBoardSubsetsIterator::BitBoardSubsetsIterator(const BitBoard* bb) : bb(bb), n(0), i(0) {}
+	BitBoardSubsetsIterator& BitBoardSubsetsIterator::operator ++ () {
+	    this->n = (this->n - *this->bb) & *this->bb;
+	    this->i ++;
+	    return *this;
+	}
+	bool BitBoardSubsetsIterator::operator != (BitBoardSubsets::END) const {
+	    return this->i == 0 || !this->n.empty();
+	}
+	BitBoard BitBoardSubsetsIterator::operator * () const {
+	    return this->n;
 	}
 }
 

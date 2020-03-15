@@ -28,14 +28,17 @@ int main()
 	moves.reserve(100);
 
 	auto start_time = std::chrono::system_clock::now();
-	for (auto i = 0; i < 1'000'000; ++i) {
+	size_t i;
+	for (i = 0; i < 1'000'000; ++i) {
 		b.legal_moves(moves);
 		if (moves.empty()) break;
 		auto move = moves[rand() % moves.size()];
 		b.push_move(move);
 	}
 	auto end_time = std::chrono::system_clock::now();
-
-	std::wcout << "Took: " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << " ms." << std::endl;
-	std::wcout << b << std::endl;
+	auto duration = end_time - start_time;
+	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+	auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+	std::cout << "Took: " << ms << " ms [ " << ns / i << " ns/move]." << std::endl;
+	std::cout << b.fen() << std::endl << b;
 }
