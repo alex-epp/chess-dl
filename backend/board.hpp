@@ -1,7 +1,6 @@
 #pragma once
 
 #include "bitboard.hpp"
-#include "mailbox.hpp"
 #include "move.hpp"
 #include "piece.hpp"
 #include "square.hpp"
