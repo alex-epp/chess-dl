@@ -1,19 +1,7 @@
 os: linux
-dist: trusty
+dist: bionic
 language: cpp
 compiler: gcc
-
-addons:
-  apt:
-    sources:
-      - sourceline: "ppa:ubuntu-toolchain-r/test"
-    packages:
-      - gcc-8
-      - g++-8
-
-before_install:
-  - export CC=gcc-8
-  - export CXX=g++-8
 
 install:
   # Latest cmake -- see https://github.com/travis-ci/travis-ci/issues/7437
@@ -24,10 +12,8 @@ install:
   - ./cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
   - cmake --version
   # libtorch (for neural networks)
-  # - wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip
-  # - unzip libtorch-cxx11-abi-shared-with-deps-1.4.0+cpu.zip
-  - wget https://download.pytorch.org/libtorch/cpu/libtorch-shared-with-deps-1.4.0%2Bcpu.zip
-  - unzip libtorch-shared-with-deps-1.4.0+cpu.zip
+  - wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip
+  - unzip libtorch-cxx11-abi-shared-with-deps-1.4.0+cpu.zip
 
 
 script:
