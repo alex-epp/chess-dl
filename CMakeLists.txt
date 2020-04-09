@@ -14,10 +14,11 @@ find_package(Torch REQUIRED)
 message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
 message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=1")
+
 add_library(Torch INTERFACE IMPORTED)
 target_include_directories(Torch INTERFACE "${TORCH_INCLUDE_DIRS}")
 target_link_libraries(Torch INTERFACE "${TORCH_LIBRARIES}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 include_directories("${TORCH_INCLUDE_DIRS}")  # Including globally like this is bad practice afaik, but required in this
                                               # case so that Clion's autocomplete works correctly in remote mode.
                                               # Alternatively, I could download libtorch using FetchContent.
