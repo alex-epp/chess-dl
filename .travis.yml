@@ -1,10 +1,21 @@
+os: linux
+dist: trusty
 language: cpp
+compiler: gcc
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r/test
+    packages:
+      - gcc-8
+      - g++-8
+      - cmake
 
 before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo apt-get update -qq
-  - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-8; fi
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-8" CC="gcc-8"; fi
+  - export CC=gcc-8
+  - export CXX=g++-8
+  - cmake --version
 
 install:
   # libtorch (for neural networks)
