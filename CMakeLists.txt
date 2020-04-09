@@ -18,6 +18,7 @@ add_library(Torch INTERFACE IMPORTED)
 target_include_directories(Torch INTERFACE "${TORCH_INCLUDE_DIRS}")
 target_link_libraries(Torch INTERFACE "${TORCH_LIBRARIES}")
 target_compile_options(Torch INTERFACE "${TORCH_CXX_FLAGS}")
+target_compile_features(Torch INTERFACE cxx_std_17)
 include_directories("${TORCH_INCLUDE_DIRS}")  # Including globally like this is bad practice afaik, but required in this
                                               # case so that Clion's autocomplete works correctly in remote mode.
                                               # Alternatively, I could download libtorch using FetchContent.
