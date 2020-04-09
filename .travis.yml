@@ -16,15 +16,13 @@ before_install:
   - export CXX=g++-8
 
 install:
-  # Latest cmake -- see https://riptutorial.com/cmake/example/4723/configure-travis-ci-with-newest-cmake
-  - sudo apt remove cmake
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
-  - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.tar.gz
-  - tar -xvf cmake-3.17.0-Linux-x86_64.tar.gz
-  - mv cmake-3.17.0-Linux-x86_64.tar.gz cmake-install
-  - PATH=${DEPS_DIR}/cmake-install:${DEPS_DIR}/cmake-install/bin:$PATH
-  - cd ${TRAVIS_BUILD_DIR}
+  # Latest cmake -- see https://github.com/travis-ci/travis-ci/issues/7437
+  - mkdir $HOME/usr
+  - export PATH="$HOME/usr/bin:$PATH"
+  - wget https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.sh
+  - chmod +x cmake-3.17.0-Linux-x86_64.sh
+  - ./cmake-3.17.0-Linux-x86_64 --prefix=$HOME/usr --exclude-subdir --skip-license
+  - cmake --version
   # libtorch (for neural networks)
   - wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip
   - unzip libtorch-cxx11-abi-shared-with-deps-1.4.0+cpu.zip
