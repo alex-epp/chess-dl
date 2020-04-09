@@ -31,6 +31,9 @@ install:
 
 
 script:
+  - mkdir assets && cd assets
+  - wget https://github.com/michaeldv/donna_opening_books/blob/master/gm2001.bin
+  - cd -
   - mkdir build && cd build
   - cmake -DCMAKE_PREFIX_PATH="$(pwd)/../libtorch" -DCMAKE_BUILD_TYPE=Release ..
   - make all
