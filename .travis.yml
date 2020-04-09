@@ -10,11 +10,9 @@ addons:
     packages:
       - gcc-8
       - g++-8
-      - cmake
 
 before_install:
-  - sudo apt remove cmake
-  - sudo pip install cmake --upgrade
+  - choco upgrade cmake
   - export CC=gcc-8
   - export CXX=g++-8
   - cmake --version
