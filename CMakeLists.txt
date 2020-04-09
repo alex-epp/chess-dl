@@ -5,10 +5,10 @@ project(chess VERSION 0.1
         DESCRIPTION "C++ chess engine"
         LANGUAGES CXX)
 
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#    add_definitions(-mbmi2)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 endif()
+
 
 find_package(Torch REQUIRED)
 add_library(Torch INTERFACE IMPORTED)
