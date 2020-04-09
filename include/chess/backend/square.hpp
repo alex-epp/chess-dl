@@ -24,23 +24,24 @@ namespace chess {
 	class BitBoardIterator;
 
 	class Square {
-	public: // Construct from unsigned int
+	private:
+	    constexpr static unsigned int construct_from_uci(std::string_view uci) {
+            assert(uci == "-" || (uci.length() == 2 && 'a' <= utils::tolower(uci[0]) && utils::tolower(uci[0]) <= 'h' && '1' <= uci[1] && uci[1] <= '8'));
+            if (uci == "-") return EMPTY;
+            auto file = utils::tolower(uci[0]) - 'a';
+            auto rank = uci[1] - '1';
+            assert(0 <= file && file < 8);
+            assert(0 <= rank && rank < 8);
+            return file + (rank << 3);
+	    }
+
+	public:
 		constexpr static unsigned int EMPTY = std::numeric_limits<unsigned int>::max();
 
 		constexpr Square(unsigned int square = EMPTY) : square(square) {
 			assert((square >= 0 && square < 64) || square == EMPTY);
 		}
-		constexpr Square(std::string_view uci) : Square() {
-			assert(uci == "-" || (uci.length() == 2 && 'a' <= utils::tolower(uci[0]) && utils::tolower(uci[0]) <= 'h' && '1' <= uci[1] && uci[1] <= '8'));
-			if (uci != "-") {
-				auto file = utils::tolower(uci[0]) - 'a';
-				auto rank = uci[1] - '1';
-				assert(0 <= file && file < 8);
-				assert(0 <= rank && rank < 8);
-				this->square = file + (rank << 3);
-				assert(0 <= this->square && this->square < 64);
-			}
-		}
+		constexpr Square(std::string_view uci) : Square(construct_from_uci(uci)) {}
 		constexpr Square(const File file, const Rank rank) : square(static_cast<int>(file) + (static_cast<int>(rank) << 3)) {
 			assert(0 <= square && square < 64);
 		}

@@ -26,7 +26,7 @@ namespace tests {
         }
     }
 
-	TEST_CASE("perft") {
+	TEST_CASE("perft", "[!hide]") {
 		SECTION("perft_initial") { perft_test(initial, { 20, 400, 8902, 197281, 4865609 }); }
 		SECTION("perft_kiwipete") { perft_test(kiwipete, { 48, 2039, 97862, 4085603, 193690690 }); }
 		SECTION("perft_position_3") { perft_test(position_3, { 14, 191, 2812, 43238, 674624 }); }

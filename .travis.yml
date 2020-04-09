@@ -1,0 +1,39 @@
+os: linux
+dist: bionic
+language: cpp
+compiler: gcc
+
+addons:
+  apt:
+    sources:
+      - sourceline: "ppa:ubuntu-toolchain-r/test"
+    packages:
+      - gcc-10
+      - g++-10
+
+before_install:
+  - export CC=gcc-10
+  - export CXX=g++-10
+
+install:
+  # Latest cmake -- see https://github.com/travis-ci/travis-ci/issues/7437
+  - mkdir $HOME/usr
+  - export PATH="$HOME/usr/bin:$PATH"
+  - wget https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.sh
+  - chmod +x cmake-3.17.0-Linux-x86_64.sh
+  - ./cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
+  - cmake --version
+  # libtorch (for neural networks)
+  - wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip
+  - unzip libtorch-cxx11-abi-shared-with-deps-1.4.0+cpu.zip
+
+
+script:
+  - mkdir assets && cd assets
+  - wget https://github.com/michaeldv/donna_opening_books/raw/master/gm2001.bin
+  - cd -
+  - mkdir build && cd build
+  - cmake -DCMAKE_PREFIX_PATH="$(pwd)/../libtorch" -DCMAKE_BUILD_TYPE=Release ..
+  - make all
+  - cd tests/engine; ./engine_tests -d yes; cd -
+  - cd tests/backend; ./backend_tests -d yes; cd -

@@ -5,18 +5,21 @@ project(chess VERSION 0.1
         DESCRIPTION "C++ chess engine"
         LANGUAGES CXX)
 
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-#    add_definitions(-mbmi2)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 endif()
 
+
 find_package(Torch REQUIRED)
-add_library(Torch INTERFACE IMPORTED)
-target_include_directories(Torch INTERFACE "${TORCH_INCLUDE_DIRS}")
-target_link_libraries(Torch INTERFACE "${TORCH_LIBRARIES}")
+message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
+message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
+message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 include_directories("${TORCH_INCLUDE_DIRS}")  # Including globally like this is bad practice afaik, but required in this
                                               # case so that Clion's autocomplete works correctly in remote mode.
                                               # Alternatively, I could download libtorch using FetchContent.
+add_library(Torch INTERFACE IMPORTED)
+target_include_directories(Torch INTERFACE "${TORCH_INCLUDE_DIRS}")
+target_link_libraries(Torch INTERFACE "${TORCH_LIBRARIES}")
 
 include(FetchContent)
 set(FETCHCONTENT_QUIET off)
