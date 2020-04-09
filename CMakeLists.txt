@@ -11,6 +11,9 @@ endif()
 
 
 find_package(Torch REQUIRED)
+message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
+message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
+message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 add_library(Torch INTERFACE IMPORTED)
 target_include_directories(Torch INTERFACE "${TORCH_INCLUDE_DIRS}")
 target_link_libraries(Torch INTERFACE "${TORCH_LIBRARIES}")
