@@ -11,9 +11,6 @@ endif()
 
 
 find_package(Torch REQUIRED)
-message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
-message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
-message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 include_directories("${TORCH_INCLUDE_DIRS}")  # Including globally like this is bad practice afaik, but required in this
                                               # case so that Clion's autocomplete works correctly in remote mode.
                                               # Alternatively, I could download libtorch using FetchContent.
