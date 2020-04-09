@@ -21,7 +21,7 @@ install:
   - export PATH="$HOME/usr/bin:$PATH"
   - wget https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.sh
   - chmod +x cmake-3.17.0-Linux-x86_64.sh
-  - ./cmake-3.17.0-Linux-x86_64 --prefix=$HOME/usr --exclude-subdir --skip-license
+  - ./cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
   - cmake --version
   # libtorch (for neural networks)
   - wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.4.0%2Bcpu.zip
