@@ -17,10 +17,11 @@ before_install:
 
 install:
   # Latest cmake -- see https://riptutorial.com/cmake/example/4723/configure-travis-ci-with-newest-cmake
+  - sudo apt remove cmake
   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
   - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
   - travis_retry wget --no-check-certificate https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.tar.gz
-  - tar -xvf cmake-3.17.0-Linux-x86_64.tar.gz > /dev/null
+  - tar -xvf cmake-3.17.0-Linux-x86_64.tar.gz
   - mv cmake-3.17.0-Linux-x86_64.tar.gz cmake-install
   - PATH=${DEPS_DIR}/cmake-install:${DEPS_DIR}/cmake-install/bin:$PATH
   - cd ${TRAVIS_BUILD_DIR}
