@@ -37,5 +37,5 @@ script:
   - mkdir build && cd build
   - cmake -DCMAKE_PREFIX_PATH="$(pwd)/../libtorch" -DCMAKE_BUILD_TYPE=Release ..
   - make all
-  - cd tests/engine; ./engine_tests -s -d yes; cd -
-  - cd tests/backend; ./backend_tests -s -d yes; cd -
+  - cd tests/engine; ./engine_tests -d yes; cd -
+  - cd tests/backend; ./backend_tests -d yes; cd -
