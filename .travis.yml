@@ -3,6 +3,18 @@ dist: bionic
 language: cpp
 compiler: gcc
 
+addons:
+  apt:
+    sources:
+      - sourceline: "ppa:ubuntu-toolchain-r/test"
+    packages:
+      - gcc-8
+      - g++-8
+
+before_install:
+  - export CC=gcc-8
+  - export CXX=g++-8
+
 install:
   # Latest cmake -- see https://github.com/travis-ci/travis-ci/issues/7437
   - mkdir $HOME/usr
