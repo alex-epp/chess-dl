@@ -70,8 +70,8 @@ namespace chess {
     inline std::ostream& print_board(std::ostream& stream, const BaseBoard& board) {
         for (int ri = 7; ri >= 0; --ri) {
             for (int fi = 0; fi < 8; ++fi) {
-                auto r = static_cast<Rank>(ri);
-                auto f = static_cast<File>(fi);
+                auto r = to_rank(ri);
+                auto f = to_file(fi);
                 auto piece = board.get_piece_at(Square(f, r));
 
                 stream << piece_repr(piece);
@@ -539,15 +539,13 @@ namespace chess {
         // Filter by source file
         if (!match[2].str().empty()) {
             auto f = match[2].str()[0] - 'a';
-            assert(0 <= f && f <= 7);
-            from_mask &= static_cast<File>(f);
+            from_mask &= to_file(f);
         }
 
         // Filter by source rank
         if (!match[3].str().empty()) {
             auto r = match[3].str()[0] - '1';
-            assert(0 <= r && r <= 7);
-            from_mask &= static_cast<Rank>(r);
+            from_mask &= to_rank(r);
         }
 
         // Match legal moves

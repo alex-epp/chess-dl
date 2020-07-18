@@ -28,11 +28,11 @@ namespace chess {
 	    constexpr static unsigned int construct_from_uci(std::string_view uci) {
             assert(uci == "-" || (uci.length() == 2 && 'a' <= utils::tolower(uci[0]) && utils::tolower(uci[0]) <= 'h' && '1' <= uci[1] && uci[1] <= '8'));
             if (uci == "-") return EMPTY;
-            auto file = utils::tolower(uci[0]) - 'a';
-            auto rank = uci[1] - '1';
+            unsigned int file = utils::tolower(uci[0]) - 'a';
+            unsigned int rank = uci[1] - '1';
             assert(0 <= file && file < 8);
             assert(0 <= rank && rank < 8);
-            return file + (rank << 3);
+            return file + (rank << 3u);
 	    }
 
 	public:
@@ -42,7 +42,7 @@ namespace chess {
 			assert((square >= 0 && square < 64) || square == EMPTY);
 		}
 		constexpr Square(std::string_view uci) : Square(construct_from_uci(uci)) {}
-		constexpr Square(const File file, const Rank rank) : square(static_cast<int>(file) + (static_cast<int>(rank) << 3)) {
+		constexpr Square(const File file, const Rank rank) : square(static_cast<int>(file) + (to_integral(rank) << 3u)) {
 			assert(0 <= square && square < 64);
 		}
 
@@ -60,11 +60,11 @@ namespace chess {
 		    return this->square == Square::EMPTY;
 		}
 
-		[[nodiscard]] inline const std::string uci() const {
+		[[nodiscard]] inline std::string uci() const {
 		    return std::string(1, 'a' + static_cast<char>(this->file())) + char('1' + static_cast<char>(this->rank()));
 		}
 
-		[[nodiscard]] constexpr bool valid() {
+		[[nodiscard]] constexpr bool valid() const {
 			return this->is_empty() || (0 <= this->square && this->square < 64);
 		}
 
@@ -180,7 +180,7 @@ namespace chess {
 			if (this->square == EMPTY)
 				return EMPTY;
 			else
-				return this->square ^ 56;
+				return this->square ^ 56u;
 		}
 
 		[[nodiscard]] int distance_rank(Square s) const {

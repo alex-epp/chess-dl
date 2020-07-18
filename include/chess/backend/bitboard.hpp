@@ -38,8 +38,8 @@ namespace chess {
 	    class END {};
 
         explicit inline BitBoardSubsets(const BitBoard*);
-        inline BitBoardSubsetsIterator begin() const;
-        inline END end() const;
+        [[nodiscard]] inline BitBoardSubsetsIterator begin() const;
+        [[nodiscard]] inline END end() const;
 	private:
 	    const BitBoard* bb;
     };
@@ -51,9 +51,9 @@ namespace chess {
 	public: // Constructor from uint64
 		constexpr BitBoard(std::uint64_t bb = 0) : bb(bb) {}
 		constexpr BitBoard(const Square square) : BitBoard(UINT64_C(1) << square.get()) {}
-		constexpr BitBoard(const Rank rank) : BitBoard(UINT64_C(0xFF) << 8 * static_cast<const int>(rank)) {}
-		constexpr BitBoard(const File file) : BitBoard(UINT64_C(0x0101010101010101) << static_cast<const int>(file)) {}
-		constexpr BitBoard(const File file, const Rank rank) : BitBoard(UINT64_C(0x01) << (static_cast<int>(file) + (static_cast<int>(rank) << 3))) {}
+		constexpr BitBoard(const Rank rank) : BitBoard(UINT64_C(0xFF) << 8 * to_integral(rank)) {}
+		constexpr BitBoard(const File file) : BitBoard(UINT64_C(0x0101010101010101) << to_integral(file)) {}
+		constexpr BitBoard(const File file, const Rank rank) : BitBoard(UINT64_C(0x01) << (to_integral(file) + (to_integral(rank) << 3u))) {}
 
 	public: // Alternate constructors
 		BitBoard constexpr static from_west_files(int num_files) {
@@ -274,7 +274,7 @@ namespace chess {
 			return fill_SW_occluded(empty).shift_SW();
 		}
 
-		constexpr bool operator == (const BitBoard rhs) const {
+        [[nodiscard]] constexpr bool operator == (const BitBoard rhs) const {
 			return this->bb == rhs.bb;
 		}
 		constexpr BitBoard& operator |= (const BitBoard rhs) {
@@ -289,29 +289,27 @@ namespace chess {
 			this->bb ^= rhs.bb;
 			return *this;
 		}
-		constexpr BitBoard operator | (const BitBoard rhs) const {
+        [[nodiscard]] constexpr BitBoard operator | (const BitBoard rhs) const {
 			return this->bb | rhs.bb;
 		}
-		constexpr BitBoard operator & (const BitBoard rhs) const {
+        [[nodiscard]] constexpr BitBoard operator & (const BitBoard rhs) const {
 			return this->bb & rhs.bb;
 		}
-		constexpr BitBoard operator ^ (const BitBoard rhs) const {
+        [[nodiscard]] constexpr BitBoard operator ^ (const BitBoard rhs) const {
 			return this->bb ^ rhs.bb;
 		}
-		constexpr BitBoard operator << (const int rhs) const {
+        [[nodiscard]] constexpr BitBoard operator << (const unsigned int rhs) const {
 			return this->bb << rhs;
 		}
-		constexpr BitBoard operator >> (const int rhs) const {
+        [[nodiscard]] constexpr BitBoard operator >> (const unsigned int rhs) const {
 			return this->bb >> rhs;
 		}
-		constexpr BitBoard operator ~ () const {
+        [[nodiscard]] constexpr BitBoard operator ~ () const {
 			return ~this->bb;
 		}
-		constexpr BitBoard operator - (const BitBoard rhs) {
+        [[nodiscard]] constexpr BitBoard operator - (const BitBoard rhs) const {
 	        return this->bb - rhs.bb;
 	    }
-
-
 
 	public:
 		std::uint64_t bb;

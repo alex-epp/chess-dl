@@ -6,9 +6,6 @@
 
 
 namespace chess {
-//	class Move;
-//	template<> struct std::hash<Move>;
-
 	class Move {
 	public:
 		static constexpr unsigned int QUIET = 0b0000;
@@ -28,32 +25,33 @@ namespace chess {
 		static constexpr unsigned int Q_PROMO_CAPTURE = CAPTURE | Q_PROMOTION;
 
 		constexpr Move(Square f, Square t, unsigned int flags = QUIET, Piece::Type p = Piece::NO_TYPE) {
-			assert(p != Piece::PAWN && p != Piece::KING);
-
 			switch (p) {
 			case Piece::KNIGHT: flags |= N_PROMOTION; break;
 			case Piece::BISHOP: flags |= B_PROMOTION; break;
 			case Piece::ROOK: flags |= R_PROMOTION; break;
 			case Piece::QUEEN: flags |= Q_PROMOTION; break;
+			case Piece::PAWN: assert(false && "Can't promote to pawn"); break;
+			case Piece::KING: assert(false && "Can't promote to king"); break;
+			case Piece::NO_TYPE: break;
 			}
-			this->m_data = ((flags & 0xF) << 12) | ((f.get() & 0x3F) << 6) | (t.get() & 0x3F);
+			this->m_data = ((flags & 0xFu) << 12u) | ((f.get() & 0x3Fu) << 6u) | (t.get() & 0x3Fu);
 		}
-		constexpr Square to() const { return this->m_data & 0x3F; }
-		constexpr Square from() const { return (this->m_data >> 6) & 0x3F; }
-		constexpr auto flags() const { return (this->m_data >> 12) & 0x3F; }
+		[[nodiscard]] constexpr Square to() const { return this->m_data & 0x3Fu; }
+		[[nodiscard]] constexpr Square from() const { return (this->m_data >> 6u) & 0x3Fu; }
+		[[nodiscard]] constexpr auto flags() const { return (this->m_data >> 12u) & 0x3Fu; }
 
-		constexpr bool is_quiet() const { return this->flags() == QUIET; }
-		constexpr bool is_promotion() const { return this->flags() & PROMOTION; }
-		constexpr bool is_capture() const { return this->flags() & CAPTURE; }
-		constexpr bool is_en_capture() const { return this->flags() == EN_CAPTURE; }
-		constexpr bool is_double_pawn_push() const { return this->flags() == D_P_PUSH; }
-		constexpr bool is_castle() const { return this->is_king_castle() || this->is_queen_castle(); }
-		constexpr Piece::Type promoted_type() const { return PROMOTION_TYPES[this->flags() & 0b11]; }
+		[[nodiscard]] constexpr bool is_quiet() const { return this->flags() == QUIET; }
+		[[nodiscard]] constexpr bool is_promotion() const { return this->flags() & PROMOTION; }
+		[[nodiscard]] constexpr bool is_capture() const { return this->flags() & CAPTURE; }
+		[[nodiscard]] constexpr bool is_en_capture() const { return this->flags() == EN_CAPTURE; }
+		[[nodiscard]] constexpr bool is_double_pawn_push() const { return this->flags() == D_P_PUSH; }
+		[[nodiscard]] constexpr bool is_castle() const { return this->is_king_castle() || this->is_queen_castle(); }
+		[[nodiscard]] constexpr Piece::Type promoted_type() const { return PROMOTION_TYPES[this->flags() & 0b11u]; }
 
-		constexpr bool is_king_castle() const { return this->flags() == K_CASTLE; }
-		constexpr bool is_queen_castle() const { return this->flags() == Q_CASTLE; }
+		[[nodiscard]] constexpr bool is_king_castle() const { return this->flags() == K_CASTLE; }
+		[[nodiscard]] constexpr bool is_queen_castle() const { return this->flags() == Q_CASTLE; }
 
-		constexpr bool operator == (const Move& rhs) {
+        [[nodiscard]] constexpr bool operator == (const Move& rhs) const {
 			return this->m_data == rhs.m_data;
 		}
 	private:
@@ -63,12 +61,3 @@ namespace chess {
 		friend struct std::hash<Move>;
 	};
 }
-
-//namespace std {
-//	template<>
-//	struct hash<chess::Move> {
-//		size_t operator () (const chess::Move& m) const {
-//			return hash<int>()(m.m_data);
-//		}
-//	};
-//}
