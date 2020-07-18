@@ -19,9 +19,9 @@ install:
   # Latest cmake -- see https://github.com/travis-ci/travis-ci/issues/7437
   - mkdir $HOME/usr
   - export PATH="$HOME/usr/bin:$PATH"
-  - wget https://github.com/Kitware/CMake/releases/download/v3.17.0/cmake-3.17.0-Linux-x86_64.sh
-  - chmod +x cmake-3.17.0-Linux-x86_64.sh
-  - ./cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
+  - wget https://github.com/Kitware/CMake/releases/download/v3.18.0/cmake-3.18.0-Linux-x86_64.sh
+  - chmod +x cmake-3.18.0-Linux-x86_64.sh
+  - ./cmake-3.18.0-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license
   - cmake --version
   # libtorch (for neural networks)
   - wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.5.1%2Bcpu.zip
