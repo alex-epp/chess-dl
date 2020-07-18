@@ -40,12 +40,12 @@ namespace chess::datasets {
     public:
         using ExampleType = torch::data::Example<>;
 
-        enum class Mode {
+        enum class Split {
             Train, Valid, Test, Debug
         };
 
-        explicit CHESS(const fs::path& root, Mode mode = Mode::Train);
-        explicit CHESS(const std::vector<fs::path>& roots, Mode mode = Mode::Train);
+        explicit CHESS(const fs::path& root, Split mode = Split::Train);
+        explicit CHESS(const std::vector<fs::path>& roots, Split mode = Split::Train);
 
         [[nodiscard]]
         BatchType get_batch(size_t batch_size) override;
@@ -61,12 +61,12 @@ namespace chess::datasets {
         size_t cur_file_idx;
 
         const std::vector<fs::path> game_files;
-        const Mode mode;
+        const Split mode;
 
         FileLineStreamer file_line_streamer;
         ShuffledPositionMoveStreamer shuffled_position_move_streamer;
 
-        static std::vector<fs::path> get_game_files(const std::vector<fs::path>& roots, Mode mode);
+        static std::vector<fs::path> get_game_files(const std::vector<fs::path>& roots, Split split);
         static std::optional<fs::path> find_path_by_name(const std::string& name, const std::vector<fs::path>& roots);
         static ExampleType position_move_to_example(const Board& position, const Move& move);
         static torch::Tensor BB_to_tensor(const BitBoard& bb);

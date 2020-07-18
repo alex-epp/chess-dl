@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
     auto device = torch::kCPU;
 
-    auto ds = CHESS(dataset_search_paths, CHESS::Mode::Debug)
+    auto ds = CHESS(dataset_search_paths, CHESS::Split::Debug)
                     .map(transforms::Stack<>());
     auto dl = make_data_loader(std::move(ds), DataLoaderOptions().batch_size(batch_size));
 

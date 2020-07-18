@@ -14,29 +14,29 @@ using namespace chess::datasets;
 namespace fs = std::filesystem;
 
 
-CHESS::CHESS(const fs::path& root, Mode mode)
+CHESS::CHESS(const fs::path& root, Split mode)
         : CHESS(std::vector{root}, mode)
 {}
 
-CHESS::CHESS(const std::vector<fs::path>& roots, Mode mode)
+CHESS::CHESS(const std::vector<fs::path>& roots, Split mode)
         : cur_file_idx(0), game_files(CHESS::get_game_files(roots, mode)), mode(mode),
           file_line_streamer(game_files[cur_file_idx]),
           shuffled_position_move_streamer(file_line_streamer.next_line().value())
 {}
 
 
-std::vector<fs::path> CHESS::get_game_files(const std::vector<fs::path>& roots, CHESS::Mode mode) {
-    const static std::array<fs::path, 4> game_files_by_mode = {
-            fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/train.txt",
-            fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/valid.txt",
-            fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/test.txt",
-            fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/debug.txt",
+std::vector<fs::path> CHESS::get_game_files(const std::vector<fs::path>& roots, CHESS::Split split) {
+    const static std::map<CHESS::Split, fs::path> game_files_by_mode = {
+            {CHESS::Split::Train, fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/train.txt"},
+            {CHESS::Split::Valid, fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/valid.txt"},
+            {CHESS::Split::Test, fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/test.txt"},
+            {CHESS::Split::Debug, fs::path(__CHESS_HPP_FILEPATH).parent_path() / "meta/debug.txt"},
     };
 
-    std::ifstream in(game_files_by_mode[static_cast<size_t>(mode)]);
+    std::ifstream in(game_files_by_mode.at(split));
     if (in.fail())
         throw CHESS::Exception("Failed to open file: " +
-                               game_files_by_mode[static_cast<size_t>(mode)].string());
+                               game_files_by_mode.at(split).string());
 
     std::vector<fs::path> game_files;
     std::string name;
