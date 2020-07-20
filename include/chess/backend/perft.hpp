@@ -6,6 +6,8 @@
 
 #include <map>
 #include <vector>
+#include <thread>
+#include <future>
 
 namespace chess {
 
@@ -17,8 +19,9 @@ namespace chess {
     inline size_t perft_cache(const Board& board,
                        size_t depth,
                        std::vector<std::vector<Move>>& storage,
-                       ZobristHasher& hasher,
+                       const ZobristHasher& hasher,
                        std::map<std::pair<ZobristHasher::Hash, size_t>, size_t>& cache);
+    inline size_t perft_parallel(const Board& board, size_t depth);
 
 
     inline size_t perft(const Board& board, size_t depth) {
@@ -48,13 +51,13 @@ namespace chess {
     inline size_t perft_cache(const Board& board, size_t depth) {
         std::vector<std::vector<Move>> storage(depth, std::vector<Move>());
         std::map<std::pair<ZobristHasher::Hash, size_t>, size_t> cache;
-        ZobristHasher hasher;
+        const ZobristHasher hasher;
         return perft_cache(board, depth, storage, hasher, cache);
     }
     inline size_t perft_cache(const Board& board,
                        size_t depth,
                        std::vector<std::vector<Move>>& storage,
-                       ZobristHasher& hasher,
+                       const ZobristHasher& hasher,
                        std::map<std::pair<ZobristHasher::Hash, size_t>, size_t>& cache) {
         if (depth == 0) return 1;
 
@@ -80,6 +83,22 @@ namespace chess {
         }
 
         cache[hash] = nodes;
+        return nodes;
+    }
+    inline size_t perft_parallel(const Board& board, size_t depth) {
+
+        if (depth == 0) return 1;
+
+        std::vector<std::future<size_t>> worker_nodes;
+        for (auto& move : board.legal_moves()) {
+            worker_nodes.emplace_back(std::async([=]() {
+                auto b = board;
+                b.push_move(move);
+                return perft_cache(b, depth-1);
+            }));
+        }
+        size_t nodes = 0;
+        for (auto& n : worker_nodes) nodes += n.get();
         return nodes;
     }
 }

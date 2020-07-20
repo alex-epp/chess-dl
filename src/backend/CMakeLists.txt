@@ -12,3 +12,6 @@ target_compile_features(backend PUBLIC cxx_std_17)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(backend PUBLIC -mbmi2)
 endif()
+
+find_package(Threads REQUIRED)
+target_link_libraries(backend PUBLIC Threads::Threads)
