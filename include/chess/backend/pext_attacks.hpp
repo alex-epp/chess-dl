@@ -13,17 +13,15 @@ namespace chess {
     public:
         PextAttacks();
 
-        [[nodiscard]] inline BitBoard rook_attacks(Square from, BitBoard occluders) const;
-
-        [[nodiscard]] inline BitBoard bishop_attacks(Square from, BitBoard occluders) const;
-
+        [[nodiscard]] inline BitBoard rook_attacks(Square from, BitBoard occluders) const noexcept;
+        [[nodiscard]] inline BitBoard bishop_attacks(Square from, BitBoard occluders) const noexcept;
 
     private:
         constexpr static size_t SIZE = 107'648;
 
         static BitBoard sliding_attacks(Square start,
                                         const std::array<Direction, 4>& directions,
-                                        BitBoard occluders);
+                                        BitBoard occluders) noexcept;
 
         static size_t init_tables_single(std::array<BitBoard, SIZE>& attacks,
                                          size_t attacks_offset,
@@ -38,12 +36,12 @@ namespace chess {
         std::array<size_t, 64> BISHOP_INDICES;
     };
 
-    BitBoard PextAttacks::rook_attacks(Square from, BitBoard occluders) const {
+    inline BitBoard PextAttacks::rook_attacks(Square from, BitBoard occluders) const noexcept {
         return ATTACKS[ROOK_INDICES[from.get()] +
                        utils::pext(occluders.bb, ROOK_MASKS[from.get()].bb)];
     }
 
-    BitBoard PextAttacks::bishop_attacks(Square from, BitBoard occluders) const {
+    inline BitBoard PextAttacks::bishop_attacks(Square from, BitBoard occluders) const noexcept {
         return ATTACKS[BISHOP_INDICES[from.get()] +
                        utils::pext(occluders.bb, BISHOP_MASKS[from.get()].bb)];
     }

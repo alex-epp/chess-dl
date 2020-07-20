@@ -8,10 +8,10 @@ namespace chess {
         std::array<Direction, 4> BISHOP_DIRECTIONS = {NORTHEAST, NORTHWEST, SOUTHEAST, SOUTHWEST};
 
         auto offset = init_tables_single(ATTACKS, 0, BISHOP_MASKS, BISHOP_INDICES, BISHOP_DIRECTIONS);
-        offset = init_tables_single(ATTACKS, offset, ROOK_MASKS, ROOK_INDICES, ROOK_DIRECTIONS);
+        init_tables_single(ATTACKS, offset, ROOK_MASKS, ROOK_INDICES, ROOK_DIRECTIONS);
     }
 
-    BitBoard PextAttacks::sliding_attacks(Square start, const std::array<Direction, 4>& directions, BitBoard occluders) {
+    BitBoard PextAttacks::sliding_attacks(Square start, const std::array<Direction, 4>& directions, BitBoard occluders) noexcept {
         BitBoard attack;
         for (auto d : directions) {
             BitBoard edges;

@@ -21,14 +21,14 @@ namespace bitscan {
 	constexpr unsigned int END = std::numeric_limits<unsigned int>::max();
 
 #ifdef _WIN32
-	inline unsigned int first(std::uint64_t mask) {
+	inline unsigned int first(std::uint64_t mask) noexcept {
 		unsigned long index = 0;
 		if (_BitScanForward64(&index, mask))
 		    return index;
 		else
 			return END;
 	}
-	inline unsigned int next(unsigned long last, std::uint64_t mask) {
+	inline unsigned int next(unsigned long last, std::uint64_t mask) noexcept {
 		if (last >= 63)
 			return END;
 
@@ -39,13 +39,13 @@ namespace bitscan {
 			return END;
 	}
 #else
-    inline unsigned int first(std::uint64_t mask) {
+    inline unsigned int first(std::uint64_t mask) noexcept {
 	    if (mask == 0)
 	        return END;
 	    else
 	        return __builtin_ctzl(mask);
     }
-    inline unsigned int next(unsigned long last, std::uint64_t mask) {
+    inline unsigned int next(unsigned long last, std::uint64_t mask) noexcept {
 	    mask >>= (last + 1);
         if (last >= 63 || mask == 0)
             return END;

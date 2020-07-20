@@ -7,6 +7,8 @@ using namespace chess;
 
 namespace tests
 {
+    // TODO: need to test moving black
+
 	TEST_CASE("TestSAN") {
 		SECTION("Initial") {
 		    const auto board = chess::load_FEN<Board>(chess::STARTING_FEN);

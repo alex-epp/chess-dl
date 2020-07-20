@@ -18,8 +18,8 @@ CHESS::CHESS(const fs::path& root, Split mode)
         : CHESS(std::vector{root}, mode)
 {}
 
-CHESS::CHESS(const std::vector<fs::path>& roots, Split mode)
-        : cur_file_idx(0), game_files(CHESS::get_game_files(roots, mode)), mode(mode),
+CHESS::CHESS(const std::vector<fs::path>& roots, Split split)
+        : cur_file_idx(0), game_files(CHESS::get_game_files(roots, split)), split(split),
           file_line_streamer(game_files[cur_file_idx]),
           shuffled_position_move_streamer(file_line_streamer.next_line().value())
 {}
@@ -102,33 +102,32 @@ CHESS::ExampleType CHESS::get_next_example() {
  */
 CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
     assert(position.is_piece_at(move.from()));
-    assert(position.get_piece_at(move.from()).colour() == Colour::WHITE);
+    assert(position.get_piece_at(move.from()).colour() == position.get_turn());
 
-    auto position_encoded = torch::cat(
-            {
-                CHESS::BB_to_tensor(position.pawns(Colour::WHITE)),
-                CHESS::BB_to_tensor(position.bishops(Colour::WHITE)),
-                CHESS::BB_to_tensor(position.knights(Colour::WHITE)),
-                CHESS::BB_to_tensor(position.rooks(Colour::WHITE)),
-                CHESS::BB_to_tensor(position.queens(Colour::WHITE)),
-                CHESS::BB_to_tensor(position.kings(Colour::WHITE)),
+    auto position_encoded = torch::cat({
+        CHESS::BB_to_tensor(position.pawns(position.get_turn())),
+        CHESS::BB_to_tensor(position.bishops(position.get_turn())),
+        CHESS::BB_to_tensor(position.knights(position.get_turn())),
+        CHESS::BB_to_tensor(position.rooks(position.get_turn())),
+        CHESS::BB_to_tensor(position.queens(position.get_turn())),
+        CHESS::BB_to_tensor(position.kings(position.get_turn())),
 
-                CHESS::BB_to_tensor(position.pawns(Colour::BLACK)),
-                CHESS::BB_to_tensor(position.bishops(Colour::BLACK)),
-                CHESS::BB_to_tensor(position.knights(Colour::BLACK)),
-                CHESS::BB_to_tensor(position.rooks(Colour::BLACK)),
-                CHESS::BB_to_tensor(position.queens(Colour::BLACK)),
-                CHESS::BB_to_tensor(position.kings(Colour::BLACK)),
+        CHESS::BB_to_tensor(position.pawns(Piece::enemy_colour(position.get_turn()))),
+        CHESS::BB_to_tensor(position.bishops(Piece::enemy_colour(position.get_turn()))),
+        CHESS::BB_to_tensor(position.knights(Piece::enemy_colour(position.get_turn()))),
+        CHESS::BB_to_tensor(position.rooks(Piece::enemy_colour(position.get_turn()))),
+        CHESS::BB_to_tensor(position.queens(Piece::enemy_colour(position.get_turn()))),
+        CHESS::BB_to_tensor(position.kings(Piece::enemy_colour(position.get_turn()))),
 
-                CHESS::BB_to_tensor(position.en_target()),
+        CHESS::BB_to_tensor(position.en_target()),
 
-                torch::tensor({
-                    position.can_king_castle(Colour::WHITE),
-                    position.can_queen_castle(Colour::WHITE),
-                    position.can_king_castle(Colour::BLACK),
-                    position.can_queen_castle(Colour::BLACK)
-                }, torch::dtype(torch::kFloat32))
-            });
+        torch::tensor({
+            position.can_king_castle(position.get_turn()),
+            position.can_queen_castle(position.get_turn()),
+            position.can_king_castle(Piece::enemy_colour(position.get_turn())),
+            position.can_queen_castle(Piece::enemy_colour(position.get_turn()))
+        }, torch::dtype(torch::kFloat32))
+    });
 
     auto move_encoded = torch::stack(
             {

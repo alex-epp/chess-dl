@@ -26,17 +26,17 @@ namespace chess {
 			NO_TYPE
 		};
 
-        [[nodiscard]] static constexpr Colour enemy_colour(const Colour c) {
+        [[nodiscard]] static constexpr Colour enemy_colour(const Colour c) noexcept {
 			return static_cast<Colour>(1 - static_cast<size_t>(c));
 		}
 		template <Colour C>
-		[[nodiscard]] static constexpr Colour enemy_colour() {
+		[[nodiscard]] static constexpr Colour enemy_colour() noexcept {
 		    return Piece::enemy_colour(C);
 		}
 
-		constexpr Piece() : m_type(NO_TYPE), m_colour(Colour::WHITE) {}
-		constexpr Piece(Type t, Colour c) : m_type(t), m_colour(c) {}
-		constexpr Piece(char name) : Piece() {
+		constexpr Piece() noexcept : m_type(NO_TYPE), m_colour(Colour::WHITE) {}
+		constexpr Piece(Type t, Colour c) noexcept : m_type(t), m_colour(c) {}
+		constexpr Piece(char name) noexcept : Piece() {
 			auto name_lower = utils::tolower(name);
 			assert(name_lower == 'p' || name_lower == 'n' || name_lower == 'b' || name_lower == 'r' ||
 				name_lower == 'q' || name_lower == 'k');
@@ -52,23 +52,23 @@ namespace chess {
 			}
 		}
 
-		[[nodiscard]] constexpr auto type() const { return this->m_type; }
-		[[nodiscard]] constexpr auto colour() const { return this->m_colour; }
+		[[nodiscard]] constexpr auto type() const noexcept { return this->m_type; }
+		[[nodiscard]] constexpr auto colour() const noexcept { return this->m_colour; }
 
-		constexpr bool operator == (const Piece& rhs) const {
+		constexpr bool operator == (const Piece& rhs) const noexcept {
 			return (this->type() == NO_TYPE && rhs.type() == NO_TYPE)
 				|| (this->colour() == rhs.colour() && this->type() == rhs.type());
 		}
 
-		void swap_colour() { this->m_colour = enemy_colour(this->m_colour); }
-		void clear() { this->m_type = NO_TYPE; }
+		void swap_colour() noexcept { this->m_colour = enemy_colour(this->m_colour); }
+		void clear() noexcept { this->m_type = NO_TYPE; }
 
 	private:
 		Type m_type;
 		Colour m_colour;
 	};
 
-	constexpr std::string_view piece_repr(const Piece& piece) {
+	constexpr std::string_view piece_repr(const Piece& piece) noexcept {
 		if (piece == Piece('P'))
 			return u8"\u2659";
 		else if (piece == Piece('N'))

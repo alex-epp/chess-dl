@@ -21,10 +21,10 @@ namespace chess {
 		constexpr static unsigned int END = bitscan::END;
 
 	public:
-		explicit BitBoardBitScanIterator(const BitBoard*);
-		BitBoardBitScanIterator& operator ++ ();
-		bool operator != (unsigned int) const;
-		Square operator * () const;
+		explicit inline BitBoardBitScanIterator(const BitBoard*) noexcept;
+		inline BitBoardBitScanIterator& operator ++ () noexcept;
+		[[nodiscard]] inline bool operator != (unsigned int) const noexcept;
+		[[nodiscard]] inline Square operator * () const noexcept;
 
 	private:
 		const BitBoard* bb;
@@ -37,9 +37,9 @@ namespace chess {
 	public:
 	    class END {};
 
-        explicit inline BitBoardSubsets(const BitBoard*);
-        [[nodiscard]] inline BitBoardSubsetsIterator begin() const;
-        [[nodiscard]] inline END end() const;
+        explicit inline BitBoardSubsets(const BitBoard*) noexcept;
+        [[nodiscard]] inline BitBoardSubsetsIterator begin() const noexcept;
+        [[nodiscard]] inline END end() const noexcept;
 	private:
 	    const BitBoard* bb;
     };
@@ -49,267 +49,86 @@ namespace chess {
 	*/
 	class BitBoard {
 	public: // Constructor from uint64
-		constexpr BitBoard(std::uint64_t bb = 0) : bb(bb) {}
-		constexpr BitBoard(const Square square) : BitBoard(UINT64_C(1) << square.get()) {}
-		constexpr BitBoard(const Rank rank) : BitBoard(UINT64_C(0xFF) << 8 * to_integral(rank)) {}
-		constexpr BitBoard(const File file) : BitBoard(UINT64_C(0x0101010101010101) << to_integral(file)) {}
-		constexpr BitBoard(const File file, const Rank rank) : BitBoard(UINT64_C(0x01) << (to_integral(file) + (to_integral(rank) << 3u))) {}
+		constexpr BitBoard(std::uint64_t bb = 0) noexcept;
+		constexpr BitBoard(Square square) noexcept;
+		constexpr BitBoard(Rank rank) noexcept;
+		constexpr BitBoard(File file) noexcept;
+		constexpr BitBoard(File file, Rank rank) noexcept;
 
 	public: // Alternate constructors
-		BitBoard constexpr static from_west_files(int num_files) {
-			assert(0 <= num_files && num_files <= 8);
-			BitBoard files = 0;
-			for (auto f = 7; num_files > 0; --f, --num_files) {
-				assert(0 <= f && f < 8);
-				files |= static_cast<File>(f);
-			}
-			return files;
-		}
-		BitBoard constexpr static from_east_files(int num_files) {
-			assert(0 <= num_files && num_files <= 8);
-			BitBoard files = 0;
-			for (auto f = 0; num_files > 0; ++f, --num_files) {
-				assert(0 <= f && f < 8);
-				files |= static_cast<File>(f);
-			}
-			return files;
-		}
+		[[nodiscard]] BitBoard constexpr static from_west_files(int num_files) noexcept;
+        [[nodiscard]] BitBoard constexpr static from_east_files(int num_files) noexcept;
 
 	public: // Data access
-		[[nodiscard]] constexpr bool is_piece_at(Square square) const {
-			return !(*this & square).empty();
-		}
-        [[nodiscard]] constexpr bool contains(Square square) const {
-            return this->is_piece_at(square);
-        }
-        [[nodiscard]] constexpr bool empty() const {
-			return this->bb == UINT64_C(0);
-		}
-        [[nodiscard]] Square first() const {
-	        return *BitBoardBitScanIterator(this);
-        }
+		[[nodiscard]] constexpr bool is_piece_at(Square square) const noexcept;
+        [[nodiscard]] constexpr bool contains(Square square) const noexcept;
+        [[nodiscard]] constexpr bool empty() const noexcept;
+        [[nodiscard]] inline Square first() const noexcept;
 
 	public: // range-based iteration
-        [[nodiscard]] inline auto begin() const { return BitBoardBitScanIterator(this); }
-        [[nodiscard]] inline auto end() const { return BitBoardBitScanIterator::END; }
+        [[nodiscard]] inline auto begin() const noexcept;
+        [[nodiscard]] inline auto end() const noexcept;
 
 	public: // subsets
-	    [[nodiscard]] inline auto subsets() const { return BitBoardSubsets(this); }
+	    [[nodiscard]] inline auto subsets() const noexcept;
 
 	public: // Operations we can perform on bitboards
-		[[nodiscard]] constexpr BitBoard shift_N() const {
-			return *this << 8;
-		}
-		[[nodiscard]] constexpr BitBoard shift_N(const int amount) const {
-			return *this << (8 * amount);
-		}
-		[[nodiscard]] constexpr BitBoard shift_S() const {
-			return *this >> 8;
-		}
-		[[nodiscard]] constexpr BitBoard shift_S(const int amount) const {
-			return *this >> (8 * amount);
-		}
-		[[nodiscard]] constexpr BitBoard shift_W() const {
-			return (*this >> 1) & ~BitBoard(File::H);
-		}
-		[[nodiscard]] constexpr BitBoard shift_W(const int amount) const {
-			return (*this >> amount) & ~BitBoard::from_west_files(amount);
-		}
-		[[nodiscard]] constexpr BitBoard shift_E() const {
-			return (*this << 1) & ~BitBoard(File::A);
-		}
-		[[nodiscard]] constexpr BitBoard shift_E(const int amount) const {
-			return (*this << amount) & ~BitBoard::from_east_files(amount);
-		}
-		[[nodiscard]] constexpr BitBoard shift_NW() const {
-			return (*this << 7) & ~BitBoard(File::H);
-		}
-		[[nodiscard]] constexpr BitBoard shift_NE() const {
-			return (*this << 9) & ~BitBoard(File::A);
-		}
-		[[nodiscard]] constexpr BitBoard shift_SW() const {
-			return (*this >> 9) & ~BitBoard(File::H);
-		}
-		[[nodiscard]] constexpr BitBoard shift_SE() const {
-			return (*this >> 7) & ~BitBoard(File::A);
-		}
+		[[nodiscard]] constexpr BitBoard shift_N() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_N(int amount) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_S() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_S(int amount) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_W() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_W(int amount) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_E() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_E(int amount) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_NW() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_NE() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_SW() const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_SE() const noexcept;
 
-		[[nodiscard]] constexpr BitBoard orient(Colour c) const {
-            return c == Colour::WHITE ? *this : this->flip_vertical();
-		}
+		[[nodiscard]] constexpr BitBoard orient(Colour c) const noexcept;
 
-		[[nodiscard]] constexpr BitBoard shift_N(Colour c) const {
-            return c == Colour::WHITE ? this->shift_N() : this->shift_S();
-		}
-		[[nodiscard]] constexpr BitBoard shift_N(Colour c, const int amount) const {
-            return c == Colour::WHITE ? this->shift_N(amount) : this->shift_S(amount);
-		}
-		[[nodiscard]] constexpr BitBoard shift_S(Colour c) const {
-            return c == Colour::WHITE ? this->shift_S() : this->shift_N();
-		}
-		[[nodiscard]] constexpr BitBoard shift_S(Colour c, const int amount) const {
-            return c == Colour::WHITE ? this->shift_S(amount) : this->shift_N(amount);
-		}
-		[[nodiscard]] constexpr BitBoard shift_NW(Colour c) const {
-            return c == Colour::WHITE ? this->shift_NW() : this->shift_SW();
-		}
-		[[nodiscard]] constexpr BitBoard shift_NE(Colour c) const {
-	        return c == Colour::WHITE ? this->shift_NE() : this->shift_SE();
-		}
-		[[nodiscard]] constexpr BitBoard shift_SW(Colour c) const {
-            return c == Colour::WHITE ? this->shift_SW() : this->shift_NW();
-		}
-		[[nodiscard]] constexpr BitBoard shift_SE(Colour c) const {
-            return c == Colour::WHITE ? this->shift_SE() : this->shift_NE();
-        }
+		[[nodiscard]] constexpr BitBoard shift_N(Colour c) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_N(Colour c, int amount) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_S(Colour c) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_S(Colour c, int amount) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_NW(Colour c) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_NE(Colour c) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_SW(Colour c) const noexcept;
+		[[nodiscard]] constexpr BitBoard shift_SE(Colour c) const noexcept;
 
-		[[nodiscard]] inline BitBoard flip_vertical() const {
-	        return utils::byteswap(this->bb);
-		}
-		[[nodiscard]] inline size_t pop_count() const {
-	        return std::bitset<64>(this->bb).count();
-	    }
+		[[nodiscard]] inline BitBoard flip_vertical() const noexcept;
+		[[nodiscard]] inline size_t pop_count() const noexcept;
 
-		[[nodiscard]] constexpr BitBoard fill_N_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			gen |= empty & (gen << 8);
-			empty &= (empty << 8);
-			gen |= empty & (gen << 16);
-			empty &= (empty << 16);
-			gen |= empty & (gen << 32);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_S_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			gen |= empty & (gen >> 8);
-			empty &= (empty >> 8);
-			gen |= empty & (gen >> 16);
-			empty &= (empty >> 16);
-			gen |= empty & (gen >> 32);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_E_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			empty &= ~BitBoard(File::A);
-			gen |= empty & (gen << 1);
-			empty &= (empty << 1);
-			gen |= empty & (gen << 2);
-			empty &= (empty << 2);
-			gen |= empty & (gen << 4);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_W_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			empty &= ~BitBoard(File::H);
-			gen |= empty & (gen >> 1);
-			empty &= (empty >> 1);
-			gen |= empty & (gen >> 2);
-			empty &= (empty >> 2);
-			gen |= empty & (gen >> 4);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_NE_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			empty &= ~BitBoard(File::A);
-			gen |= empty & (gen << 9);
-			empty &= (empty << 9);
-			gen |= empty & (gen << 18);
-			empty &= (empty << 18);
-			gen |= empty & (gen << 36);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_SE_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			empty &= ~BitBoard(File::A);
-			gen |= empty & (gen >> 7);
-			empty &= (empty >> 7);
-			gen |= empty & (gen >> 14);
-			empty &= (empty >> 14);
-			gen |= empty & (gen >> 28);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_NW_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			empty &= ~BitBoard(File::H);
-			gen |= empty & (gen << 7);
-			empty &= (empty << 7);
-			gen |= empty & (gen << 14);
-			empty &= (empty << 14);
-			gen |= empty & (gen << 28);
-			return gen;
-		}
-		[[nodiscard]] constexpr BitBoard fill_SW_occluded(BitBoard empty) const {
-			BitBoard gen = *this;
-			empty &= ~BitBoard(File::H);
-			gen |= empty & (gen >> 9);
-			empty &= (empty >> 9);
-			gen |= empty & (gen >> 18);
-			empty &= (empty >> 18);
-			gen |= empty & (gen >> 36);
-			return gen;
-		}
+		[[nodiscard]] constexpr BitBoard fill_N_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_S_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_E_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_W_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_NE_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_SE_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_NW_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard fill_SW_occluded(BitBoard empty) const noexcept;
 
-		[[nodiscard]] constexpr BitBoard attack_N_occluded(BitBoard empty) const {
-			return fill_N_occluded(empty).shift_N();
-		}
-		[[nodiscard]] constexpr BitBoard attack_S_occluded(BitBoard empty) const {
-			return fill_S_occluded(empty).shift_S();
-		}
-		[[nodiscard]] constexpr BitBoard attack_E_occluded(BitBoard empty) const {
-			return fill_E_occluded(empty).shift_E();
-		}
-		[[nodiscard]] constexpr BitBoard attack_W_occluded(BitBoard empty) const {
-			return fill_W_occluded(empty).shift_W();
-		}
-		[[nodiscard]] constexpr BitBoard attack_NE_occluded(BitBoard empty) const {
-			return fill_NE_occluded(empty).shift_NE();
-		}
-		[[nodiscard]] constexpr BitBoard attack_SE_occluded(BitBoard empty) const {
-			return fill_SE_occluded(empty).shift_SE();
-		}
-		[[nodiscard]] constexpr BitBoard attack_NW_occluded(BitBoard empty) const {
-			return fill_NW_occluded(empty).shift_NW();
-		}
-		[[nodiscard]] constexpr BitBoard attack_SW_occluded(BitBoard empty) const {
-			return fill_SW_occluded(empty).shift_SW();
-		}
+		[[nodiscard]] constexpr BitBoard attack_N_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_S_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_E_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_W_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_NE_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_SE_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_NW_occluded(BitBoard empty) const noexcept;
+		[[nodiscard]] constexpr BitBoard attack_SW_occluded(BitBoard empty) const noexcept;
 
-        [[nodiscard]] constexpr bool operator == (const BitBoard rhs) const {
-			return this->bb == rhs.bb;
-		}
-		constexpr BitBoard& operator |= (const BitBoard rhs) {
-			this->bb |= rhs.bb;
-			return *this;
-		}
-		constexpr BitBoard& operator &= (const BitBoard rhs) {
-			this->bb &= rhs.bb;
-			return *this;
-		}
-		constexpr BitBoard& operator ^= (const BitBoard rhs) {
-			this->bb ^= rhs.bb;
-			return *this;
-		}
-        [[nodiscard]] constexpr BitBoard operator | (const BitBoard rhs) const {
-			return this->bb | rhs.bb;
-		}
-        [[nodiscard]] constexpr BitBoard operator & (const BitBoard rhs) const {
-			return this->bb & rhs.bb;
-		}
-        [[nodiscard]] constexpr BitBoard operator ^ (const BitBoard rhs) const {
-			return this->bb ^ rhs.bb;
-		}
-        [[nodiscard]] constexpr BitBoard operator << (const unsigned int rhs) const {
-			return this->bb << rhs;
-		}
-        [[nodiscard]] constexpr BitBoard operator >> (const unsigned int rhs) const {
-			return this->bb >> rhs;
-		}
-        [[nodiscard]] constexpr BitBoard operator ~ () const {
-			return ~this->bb;
-		}
-        [[nodiscard]] constexpr BitBoard operator - (const BitBoard rhs) const {
-	        return this->bb - rhs.bb;
-	    }
+        [[nodiscard]] constexpr bool operator == (BitBoard rhs) const noexcept;
+		constexpr BitBoard& operator |= (BitBoard rhs) noexcept;
+		constexpr BitBoard& operator &= (BitBoard rhs) noexcept;
+		constexpr BitBoard& operator ^= (BitBoard rhs) noexcept;
+        [[nodiscard]] constexpr BitBoard operator | (BitBoard rhs) const noexcept;
+        [[nodiscard]] constexpr BitBoard operator & (BitBoard rhs) const noexcept;
+        [[nodiscard]] constexpr BitBoard operator ^ (BitBoard rhs) const noexcept;
+        [[nodiscard]] constexpr BitBoard operator << (unsigned int rhs) const noexcept;
+        [[nodiscard]] constexpr BitBoard operator >> (unsigned int rhs) const noexcept;
+        [[nodiscard]] constexpr BitBoard operator ~ () const noexcept;
+        [[nodiscard]] constexpr BitBoard operator - (BitBoard rhs) const noexcept;
 
 	public:
 		std::uint64_t bb;
@@ -319,19 +138,276 @@ namespace chess {
 
     class BitBoardSubsetsIterator {
     public:
-        inline BitBoardSubsetsIterator& operator ++ ();
-        [[nodiscard]] inline bool operator != (BitBoardSubsets::END) const;
-        [[nodiscard]] inline BitBoard operator * () const;
-        explicit inline BitBoardSubsetsIterator(const BitBoard*);
+        inline BitBoardSubsetsIterator& operator ++ () noexcept;
+        [[nodiscard]] inline bool operator != (BitBoardSubsets::END) const noexcept;
+        [[nodiscard]] inline BitBoard operator * () const noexcept;
+        explicit inline BitBoardSubsetsIterator(const BitBoard*) noexcept;
     private:
         const BitBoard* bb;
         BitBoard n;
         size_t i;
     };
 
-	/*
-	Helpful predefined bitboards
-	*/
+    constexpr BitBoard::BitBoard(std::uint64_t bb) noexcept
+            : bb(bb) {}
+    constexpr BitBoard::BitBoard(Square square) noexcept
+            : BitBoard(UINT64_C(1) << square.get()) {}
+    constexpr BitBoard::BitBoard(Rank rank) noexcept
+            : BitBoard(UINT64_C(0xFF) << 8 * to_integral(rank)) {}
+    constexpr BitBoard::BitBoard(File file) noexcept
+            : BitBoard(UINT64_C(0x0101010101010101) << to_integral(file)) {}
+    constexpr BitBoard::BitBoard(File file, Rank rank) noexcept
+            : BitBoard(UINT64_C(0x01) << (to_integral(file) + (to_integral(rank) << 3u))) {}
+
+    BitBoard constexpr BitBoard::from_west_files(int num_files) noexcept {
+        assert(0 <= num_files && num_files <= 8);
+        BitBoard files = 0;
+        for (auto f = 7; num_files > 0; --f, --num_files) {
+            files |= to_file(f);
+        }
+        return files;
+    }
+    BitBoard constexpr BitBoard::from_east_files(int num_files) noexcept {
+        assert(0 <= num_files && num_files <= 8);
+        BitBoard files = 0;
+        for (auto f = 0; num_files > 0; ++f, --num_files) {
+            files |= to_file(f);
+        }
+        return files;
+    }
+    constexpr bool BitBoard::is_piece_at(Square square) const noexcept {
+        return !(*this & square).empty();
+    }
+    constexpr bool BitBoard::contains(Square square) const noexcept {
+        return this->is_piece_at(square);
+    }
+    constexpr bool BitBoard::empty() const noexcept {
+        return this->bb == UINT64_C(0);
+    }
+    inline Square BitBoard::first() const noexcept {
+        return *BitBoardBitScanIterator(this);
+    }
+    inline auto BitBoard::begin() const noexcept {
+        return BitBoardBitScanIterator(this);
+    }
+    inline auto BitBoard::end() const noexcept {
+        return BitBoardBitScanIterator::END;
+    }
+    inline auto BitBoard::subsets() const noexcept {
+        return BitBoardSubsets(this);
+    }
+    constexpr BitBoard BitBoard::shift_N() const noexcept {
+        return *this << 8;
+    }
+    constexpr BitBoard BitBoard::shift_N(int amount) const noexcept {
+        return *this << (8 * amount);
+    }
+    constexpr BitBoard BitBoard::shift_S() const noexcept {
+        return *this >> 8;
+    }
+    constexpr BitBoard BitBoard::shift_S(int amount) const noexcept {
+        return *this >> (8 * amount);
+    }
+    constexpr BitBoard BitBoard::shift_W() const noexcept {
+        return (*this >> 1) & ~BitBoard(File::H);
+    }
+    constexpr BitBoard BitBoard::shift_W(int amount) const noexcept {
+        return (*this >> amount) & ~BitBoard::from_west_files(amount);
+    }
+    constexpr BitBoard BitBoard::shift_E() const noexcept {
+        return (*this << 1) & ~BitBoard(File::A);
+    }
+    constexpr BitBoard BitBoard::shift_E(int amount) const noexcept {
+        return (*this << amount) & ~BitBoard::from_east_files(amount);
+    }
+    constexpr BitBoard BitBoard::shift_NW() const noexcept {
+        return (*this << 7) & ~BitBoard(File::H);
+    }
+    constexpr BitBoard BitBoard::shift_NE() const noexcept {
+        return (*this << 9) & ~BitBoard(File::A);
+    }
+    constexpr BitBoard BitBoard::shift_SW() const noexcept {
+        return (*this >> 9) & ~BitBoard(File::H);
+    }
+    constexpr BitBoard BitBoard::shift_SE() const noexcept {
+        return (*this >> 7) & ~BitBoard(File::A);
+    }
+    constexpr BitBoard BitBoard::orient(Colour c) const noexcept {
+        return c == Colour::WHITE ? *this : this->flip_vertical();
+    }
+    constexpr BitBoard BitBoard::shift_N(Colour c) const noexcept {
+        return c == Colour::WHITE ? this->shift_N() : this->shift_S();
+    }
+    constexpr BitBoard BitBoard::shift_N(Colour c, int amount) const noexcept {
+        return c == Colour::WHITE ? this->shift_N(amount) : this->shift_S(amount);
+    }
+    constexpr BitBoard BitBoard::shift_S(Colour c) const noexcept {
+        return c == Colour::WHITE ? this->shift_S() : this->shift_N();
+    }
+    constexpr BitBoard BitBoard::shift_S(Colour c, int amount) const noexcept {
+        return c == Colour::WHITE ? this->shift_S(amount) : this->shift_N(amount);
+    }
+    constexpr BitBoard BitBoard::shift_NW(Colour c) const noexcept {
+        return c == Colour::WHITE ? this->shift_NW() : this->shift_SW();
+    }
+    constexpr BitBoard BitBoard::shift_NE(Colour c) const noexcept {
+        return c == Colour::WHITE ? this->shift_NE() : this->shift_SE();
+    }
+    constexpr BitBoard BitBoard::shift_SW(Colour c) const noexcept {
+        return c == Colour::WHITE ? this->shift_SW() : this->shift_NW();
+    }
+    constexpr BitBoard BitBoard::shift_SE(Colour c) const noexcept {
+        return c == Colour::WHITE ? this->shift_SE() : this->shift_NE();
+    }
+    inline BitBoard BitBoard::flip_vertical() const noexcept {
+        return utils::byteswap(this->bb);
+    }
+    inline size_t BitBoard::pop_count() const noexcept {
+        return std::bitset<64>(this->bb).count();
+    }
+    constexpr BitBoard BitBoard::fill_N_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        gen |= empty & (gen << 8);
+        empty &= (empty << 8);
+        gen |= empty & (gen << 16);
+        empty &= (empty << 16);
+        gen |= empty & (gen << 32);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_S_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        gen |= empty & (gen >> 8);
+        empty &= (empty >> 8);
+        gen |= empty & (gen >> 16);
+        empty &= (empty >> 16);
+        gen |= empty & (gen >> 32);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_E_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        empty &= ~BitBoard(File::A);
+        gen |= empty & (gen << 1);
+        empty &= (empty << 1);
+        gen |= empty & (gen << 2);
+        empty &= (empty << 2);
+        gen |= empty & (gen << 4);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_W_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        empty &= ~BitBoard(File::H);
+        gen |= empty & (gen >> 1);
+        empty &= (empty >> 1);
+        gen |= empty & (gen >> 2);
+        empty &= (empty >> 2);
+        gen |= empty & (gen >> 4);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_NE_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        empty &= ~BitBoard(File::A);
+        gen |= empty & (gen << 9);
+        empty &= (empty << 9);
+        gen |= empty & (gen << 18);
+        empty &= (empty << 18);
+        gen |= empty & (gen << 36);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_SE_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        empty &= ~BitBoard(File::A);
+        gen |= empty & (gen >> 7);
+        empty &= (empty >> 7);
+        gen |= empty & (gen >> 14);
+        empty &= (empty >> 14);
+        gen |= empty & (gen >> 28);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_NW_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        empty &= ~BitBoard(File::H);
+        gen |= empty & (gen << 7);
+        empty &= (empty << 7);
+        gen |= empty & (gen << 14);
+        empty &= (empty << 14);
+        gen |= empty & (gen << 28);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::fill_SW_occluded(BitBoard empty) const noexcept {
+        BitBoard gen = *this;
+        empty &= ~BitBoard(File::H);
+        gen |= empty & (gen >> 9);
+        empty &= (empty >> 9);
+        gen |= empty & (gen >> 18);
+        empty &= (empty >> 18);
+        gen |= empty & (gen >> 36);
+        return gen;
+    }
+    constexpr BitBoard BitBoard::attack_N_occluded(BitBoard empty) const noexcept {
+        return fill_N_occluded(empty).shift_N();
+    }
+    constexpr BitBoard BitBoard::attack_S_occluded(BitBoard empty) const noexcept {
+        return fill_S_occluded(empty).shift_S();
+    }
+    constexpr BitBoard BitBoard::attack_E_occluded(BitBoard empty) const noexcept {
+        return fill_E_occluded(empty).shift_E();
+    }
+    constexpr BitBoard BitBoard::attack_W_occluded(BitBoard empty) const noexcept {
+        return fill_W_occluded(empty).shift_W();
+    }
+    constexpr BitBoard BitBoard::attack_NE_occluded(BitBoard empty) const noexcept {
+        return fill_NE_occluded(empty).shift_NE();
+    }
+    constexpr BitBoard BitBoard::attack_SE_occluded(BitBoard empty) const noexcept {
+        return fill_SE_occluded(empty).shift_SE();
+    }
+    constexpr BitBoard BitBoard::attack_NW_occluded(BitBoard empty) const noexcept {
+        return fill_NW_occluded(empty).shift_NW();
+    }
+    constexpr BitBoard BitBoard::attack_SW_occluded(BitBoard empty) const noexcept {
+        return fill_SW_occluded(empty).shift_SW();
+    }
+
+    constexpr bool BitBoard::operator == (BitBoard rhs) const noexcept {
+        return this->bb == rhs.bb;
+    }
+    constexpr BitBoard& BitBoard::operator |= (BitBoard rhs) noexcept {
+        this->bb |= rhs.bb;
+        return *this;
+    }
+    constexpr BitBoard& BitBoard::operator &= (BitBoard rhs) noexcept {
+        this->bb &= rhs.bb;
+        return *this;
+    }
+    constexpr BitBoard& BitBoard::operator ^= (BitBoard rhs) noexcept {
+        this->bb ^= rhs.bb;
+        return *this;
+    }
+    constexpr BitBoard BitBoard::operator | (BitBoard rhs) const noexcept {
+        return this->bb | rhs.bb;
+    }
+    constexpr BitBoard BitBoard::operator & (BitBoard rhs) const noexcept {
+        return this->bb & rhs.bb;
+    }
+    constexpr BitBoard BitBoard::operator ^ (BitBoard rhs) const noexcept {
+        return this->bb ^ rhs.bb;
+    }
+    constexpr BitBoard BitBoard::operator << (unsigned int rhs) const noexcept {
+        return this->bb << rhs;
+    }
+    constexpr BitBoard BitBoard::operator >> (unsigned int rhs) const noexcept {
+        return this->bb >> rhs;
+    }
+    constexpr BitBoard BitBoard::operator ~ () const noexcept {
+        return ~this->bb;
+    }
+    constexpr BitBoard BitBoard::operator - (BitBoard rhs) const noexcept {
+        return this->bb - rhs.bb;
+    }
+
+    /*
+    Helpful predefined bitboards
+    */
 	namespace BB {
 		constexpr auto A1 = BitBoard(Square("A1")), A2 = BitBoard(Square("A2")), A3 = BitBoard(Square("A3")), A4 = BitBoard(Square("A4")), A5 = BitBoard(Square("A5")), A6 = BitBoard(Square("A6")), A7 = BitBoard(Square("A7")), A8 = BitBoard(Square("A8"));
 		constexpr auto B1 = BitBoard(Square("B1")), B2 = BitBoard(Square("B2")), B3 = BitBoard(Square("B3")), B4 = BitBoard(Square("B4")), B5 = BitBoard(Square("B5")), B6 = BitBoard(Square("B6")), B7 = BitBoard(Square("B7")), B8 = BitBoard(Square("B8"));
@@ -361,23 +437,41 @@ namespace chess {
 		return stream;
 	}
 
-	BitBoardSubsets::BitBoardSubsets(const BitBoard* bb) : bb(bb) {}
-	BitBoardSubsetsIterator BitBoardSubsets::begin() const {
+
+    BitBoardBitScanIterator::BitBoardBitScanIterator(const BitBoard* bb) noexcept
+        : bb(bb), square(bitscan::first(bb->bb)) {}
+
+    BitBoardBitScanIterator& BitBoardBitScanIterator::operator ++ () noexcept {
+        this->square = bitscan::next(this->square.get(), this->bb->bb);
+        return *this;
+    }
+    bool BitBoardBitScanIterator::operator != (unsigned int rhs) const noexcept {
+        return this->square.get() != rhs;
+    }
+    Square BitBoardBitScanIterator::operator * () const noexcept {
+        return this->square;
+    }
+
+
+	BitBoardSubsets::BitBoardSubsets(const BitBoard* bb) noexcept
+	    : bb(bb) {}
+	BitBoardSubsetsIterator BitBoardSubsets::begin() const noexcept {
 	    return BitBoardSubsetsIterator(this->bb);
 	}
-	BitBoardSubsets::END BitBoardSubsets::end() const {
+	BitBoardSubsets::END BitBoardSubsets::end() const noexcept {
 	    return END{};
 	}
-	BitBoardSubsetsIterator::BitBoardSubsetsIterator(const BitBoard* bb) : bb(bb), n(0), i(0) {}
-	BitBoardSubsetsIterator& BitBoardSubsetsIterator::operator ++ () {
+	BitBoardSubsetsIterator::BitBoardSubsetsIterator(const BitBoard* bb) noexcept
+	    : bb(bb), n(0), i(0) {}
+	BitBoardSubsetsIterator& BitBoardSubsetsIterator::operator ++ () noexcept {
 	    this->n = (this->n - *this->bb) & *this->bb;
 	    this->i ++;
 	    return *this;
 	}
-	bool BitBoardSubsetsIterator::operator != (BitBoardSubsets::END) const {
+	bool BitBoardSubsetsIterator::operator != (BitBoardSubsets::END) const noexcept {
 	    return this->i == 0 || !this->n.empty();
 	}
-	BitBoard BitBoardSubsetsIterator::operator * () const {
+	BitBoard BitBoardSubsetsIterator::operator * () const noexcept {
 	    return this->n;
 	}
 }

@@ -61,7 +61,7 @@ namespace chess::datasets {
         size_t cur_file_idx;
 
         const std::vector<fs::path> game_files;
-        const Split mode;
+        const Split split;
 
         FileLineStreamer file_line_streamer;
         ShuffledPositionMoveStreamer shuffled_position_move_streamer;
