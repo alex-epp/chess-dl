@@ -131,8 +131,8 @@ CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position,
 
     auto move_encoded = torch::stack(
             {
-               CHESS::BB_to_tensor(move.from()),
-               CHESS::BB_to_tensor(move.to())
+               CHESS::BB_to_tensor(move.from().orient(position.get_turn())),
+               CHESS::BB_to_tensor(move.to().orient(position.get_turn()))
             });
 
     return CHESS::ExampleType(position_encoded, move_encoded);
