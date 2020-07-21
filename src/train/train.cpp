@@ -1,4 +1,4 @@
-#include <chess/train/datasets/CHESS.hpp>
+#include <train/datasets/CHESS.hpp>
 
 #include <chrono>
 #include <cstdlib>
@@ -31,13 +31,14 @@ TORCH_MODULE(Linear);
 int main(int argc, char** argv) {
     std::vector<fs::path> dataset_search_paths{
         "/mnt/lichess_1", "/mnt/lichess_2",  // For running on cybera
+        "/home/alex/src/datasets/lichess_1", "/home/alex/src/datasets/lichess_2",
         // TODO: add other possible paths here
     };
 
     const size_t epoch_size = 40'357'832;
     const size_t batch_size = 32;
 
-    auto device = torch::kCPU;
+    auto device = torch::kCUDA;
 
     auto ds = CHESS(dataset_search_paths, CHESS::Split::Debug)
                     .map(transforms::Stack<>());

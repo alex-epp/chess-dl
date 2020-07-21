@@ -1,8 +1,8 @@
 cmake_minimum_required (VERSION 3.15)
 
 
-project(chess VERSION 0.1
-        DESCRIPTION "C++ chess engine"
+project(chess_dl VERSION 0.1
+        DESCRIPTION "Machine learning with chess"
         LANGUAGES CXX)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
@@ -22,25 +22,13 @@ include(FetchContent)
 set(FETCHCONTENT_QUIET off)
 
 FetchContent_Declare(
-        mio
-        GIT_REPOSITORY https://github.com/mandreyel/mio
+        chess
+        GIT_REPOSITORY https://github.com/alex-epp/chess
 )
-if(NOT mio_POPULATED)
-    FetchContent_MakeAvailable(mio)
-endif()
-
-FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v2.11.3
-)
-if(NOT Catch2_POPULATED)
-    FetchContent_Populate(Catch2)
-    add_subdirectory("${catch2_SOURCE_DIR}" "${catch2_BINARY_DIR}")
+if(NOT chess_POPULATED)
+    FetchContent_MakeAvailable(chess)
 endif()
 
 add_subdirectory("src")
-add_subdirectory("demos")
-add_subdirectory("tests")
 
 

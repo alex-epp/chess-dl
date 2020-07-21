@@ -2,11 +2,12 @@ file(GLOB SOURCE_LIST
         CONFIGURE_DEPENDS
         "*.cpp"
         "*.hpp"
-        "datasets/*.cpp"
-        "datasets/*.hpp")
+        "./datasets/*.cpp"
+        "./datasets/*.hpp")
 
 add_executable(train ${SOURCE_LIST})
-target_link_libraries(train PRIVATE engine Torch)
+target_link_libraries(train PRIVATE chess Torch)
+target_include_directories(train PRIVATE "${chess_dl_SOURCE_DIR}/include")
 
 if (MSVC)
     # This is annoying to have to do. Maybe I could make a custom patch to libtorch

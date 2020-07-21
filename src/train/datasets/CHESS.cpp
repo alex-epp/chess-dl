@@ -1,4 +1,4 @@
-#include <chess/train/datasets/CHESS.hpp>
+#include <train/datasets/CHESS.hpp>
 #include <chess/backend/chess.hpp>
 
 #include <algorithm>
@@ -90,6 +90,7 @@ CHESS::ExampleType CHESS::get_next_example() {
     return CHESS::position_move_to_example(position, move);
 }
 
+
 /**
  * Each position is given by 6 piece bitboards (64-bit vectors) per colour, plus additional
  * information for: en-passant target (64-bit one-hot vector) and castling rights (4-bit vector).
@@ -101,41 +102,10 @@ CHESS::ExampleType CHESS::get_next_example() {
  * Overall, x's have size [836] and y's have size [2, 64]
  */
 CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
-    assert(position.is_piece_at(move.from()));
-    assert(position.get_piece_at(move.from()).colour() == position.get_turn());
-
-    auto position_encoded = torch::cat({
-        CHESS::BB_to_tensor(position.pawns(position.get_turn())),
-        CHESS::BB_to_tensor(position.bishops(position.get_turn())),
-        CHESS::BB_to_tensor(position.knights(position.get_turn())),
-        CHESS::BB_to_tensor(position.rooks(position.get_turn())),
-        CHESS::BB_to_tensor(position.queens(position.get_turn())),
-        CHESS::BB_to_tensor(position.kings(position.get_turn())),
-
-        CHESS::BB_to_tensor(position.pawns(Piece::enemy_colour(position.get_turn()))),
-        CHESS::BB_to_tensor(position.bishops(Piece::enemy_colour(position.get_turn()))),
-        CHESS::BB_to_tensor(position.knights(Piece::enemy_colour(position.get_turn()))),
-        CHESS::BB_to_tensor(position.rooks(Piece::enemy_colour(position.get_turn()))),
-        CHESS::BB_to_tensor(position.queens(Piece::enemy_colour(position.get_turn()))),
-        CHESS::BB_to_tensor(position.kings(Piece::enemy_colour(position.get_turn()))),
-
-        CHESS::BB_to_tensor(position.en_target()),
-
-        torch::tensor({
-            position.can_king_castle(position.get_turn()),
-            position.can_queen_castle(position.get_turn()),
-            position.can_king_castle(Piece::enemy_colour(position.get_turn())),
-            position.can_queen_castle(Piece::enemy_colour(position.get_turn()))
-        }, torch::dtype(torch::kFloat32))
-    });
-
-    auto move_encoded = torch::stack(
-            {
-               CHESS::BB_to_tensor(move.from().orient(position.get_turn())),
-               CHESS::BB_to_tensor(move.to().orient(position.get_turn()))
-            });
-
-    return CHESS::ExampleType(position_encoded, move_encoded);
+    if (position.get_turn() == Colour::WHITE)
+        return position_move_to_example<Colour::WHITE>(position, move);
+    else
+        return position_move_to_example<Colour::BLACK>(position, move);
 }
 
 torch::Tensor CHESS::BB_to_tensor(const BitBoard& bb) {

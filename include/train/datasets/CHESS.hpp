@@ -71,6 +71,9 @@ namespace chess::datasets {
         static ExampleType position_move_to_example(const Board& position, const Move& move);
         static torch::Tensor BB_to_tensor(const BitBoard& bb);
 
+        template <Colour TurnColour>
+        static ExampleType position_move_to_example(const Board& position, const Move& move);
+
     public:
         class Exception : public std::exception {
         public:
@@ -83,4 +86,44 @@ namespace chess::datasets {
     };
 
     constexpr std::string_view __CHESS_HPP_FILEPATH = __FILE__;
+
+    template <Colour TurnColour>
+    CHESS::ExampleType CHESS::position_move_to_example(const chess::Board& position, const chess::Move& move) {
+        assert(position.is_piece_at(move.from()));
+        assert(position.get_piece_at(move.from()).colour() == TurnColour);
+
+        auto position_encoded = torch::cat({
+               CHESS::BB_to_tensor(position.pawns(TurnColour).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.bishops(TurnColour).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.knights(TurnColour).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.rooks(TurnColour).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.queens(TurnColour).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.kings(TurnColour).orient(TurnColour)),
+
+               CHESS::BB_to_tensor(position.pawns(Piece::enemy_colour<TurnColour>()).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.bishops(Piece::enemy_colour<TurnColour>()).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.knights(Piece::enemy_colour<TurnColour>()).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.rooks(Piece::enemy_colour<TurnColour>()).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.queens(Piece::enemy_colour<TurnColour>()).orient(TurnColour)),
+               CHESS::BB_to_tensor(position.kings(Piece::enemy_colour<TurnColour>()).orient(TurnColour)),
+
+               CHESS::BB_to_tensor(position.en_target().orient(TurnColour)),
+
+               torch::tensor({
+                     position.can_king_castle(TurnColour),
+                     position.can_queen_castle(TurnColour),
+                     position.can_king_castle(Piece::enemy_colour<TurnColour>()),
+                     position.can_queen_castle(Piece::enemy_colour<TurnColour>())
+             }, torch::dtype(torch::kFloat32))
+       });
+
+        auto move_encoded = torch::stack(
+                {
+                        CHESS::BB_to_tensor(move.from().orient(position.get_turn())),
+                        CHESS::BB_to_tensor(move.to().orient(position.get_turn()))
+                });
+
+        return CHESS::ExampleType(position_encoded, move_encoded);
+    }
 }
+
